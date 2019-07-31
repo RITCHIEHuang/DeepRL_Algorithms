@@ -14,7 +14,7 @@ num_states = env.observation_space.shape[0]
 num_actions = env.action_space.n
 
 
-class DQN:
+class NaiveDQN:
     def __init__(self, learning_rate=0.01,
                  gamma=0.90,
                  batch_size=128,
@@ -35,7 +35,7 @@ class DQN:
         self.num_learn_step = 0
 
         self.memory = MemoryReplay(memory_size)
-        self.eval_net, self.target_net = Net(num_states, num_actions), Net(num_states, num_actions)
+        self.eval_net = Net(num_states, num_actions)
         self.optimizer = optim.Adam(self.eval_net.parameters(), lr=learning_rate)
         self.loss_func = nn.MSELoss()
 
@@ -51,11 +51,6 @@ class DQN:
             return action
 
     def learn(self):
-        # 更新目标网络 target_net
-        if self.num_learn_step % self.update_target_gap:
-            self.target_net.load_state_dict(self.eval_net.state_dict())
-        self.num_learn_step += 1
-
         # 从Memory中采batch
         sample = self.memory.sample(self.batch_size)
         batch = Transition(*zip(*sample))
@@ -64,16 +59,16 @@ class DQN:
         batch_reward = torch.stack(batch.reward, 0)
         batch_next_state = torch.cat(batch.next_state)
 
-        # 训练eval_net
+        # 训练网络 eval_net
         q_eval = self.eval_net(batch_state.float()).gather(1, batch_action)
-        # 不更新 target_net参数
-        q_next = self.target_net(batch_next_state.float()).detach()
+        q_next = self.eval_net(batch_next_state.float())
+        # current_reward + gamma * max_Q_eval(next_state)
         q_target = batch_reward + self.gamma * q_next.max(1)[0].view(self.batch_size, 1)
 
         # 计算误差
         loss = self.loss_func(q_eval, q_target)
 
-        # 更新梯度
+        # 更新训练网络 eval_net 梯度
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
@@ -82,7 +77,7 @@ class DQN:
 def run():
     episodes = 400
     memory_size = 2000
-    dqn = DQN(enable_gpu=False)
+    dqn = NaiveDQN(enable_gpu=False)
 
     sample_memory_counter = 0
     # 迭代所有episodes进行采样
@@ -110,6 +105,7 @@ def run():
             if done:
                 break
             state = next_state
+    env.close()
 
 
 if __name__ == '__main__':

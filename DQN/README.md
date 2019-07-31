@@ -10,7 +10,18 @@ Deep Q-learning Network估计 action-value 映射函数,使用Experience-Replay�
 
 - *Double DQN* [Deep Reinforcement Learning with Double Q-learning][3]
 
-使用两个非同步的网络,进行交替更新.
+与Basic DQN不同,这里使用了两个网络.一个作为在线更新->训练网络,另一个用于策略评估->目标网络.
+
+在更新上,训练网络立即更新,而目标网络的更新存在一个滞后性(freeze)
+
+策略评估中,用训练网络找到next_state的最优action, 而使用目标网络进行评估.
+
+Double DQN的动作值估计形式如下(论文中说对偶形式等价即交换$\theta_t$和$\theta_t^{'}$):
+
+![8]
+
+*DDQN算法流程如下*:
+
 ![4]
 
 - *Dueling DQN* [Dueling Network Architectures for Deep Reinforcement Learning
@@ -29,3 +40,4 @@ Deep Q-learning Network估计 action-value 映射函数,使用Experience-Replay�
 [5]: https://arxiv.org/abs/1511.06581
 [6]: images/Dueling%20DQN%20Network.png
 [7]: images/Dueling%20DQN%20optimization%20for%20identifiability.png
+[8]: images/Double%20Q-learning%20error.png
