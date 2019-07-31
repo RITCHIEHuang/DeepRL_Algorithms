@@ -16,9 +16,10 @@ Deep Q-learning Network估计 action-value 映射函数,使用Experience-Replay�
 - *Dueling DQN* [Dueling Network Architectures for Deep Reinforcement Learning
 ][5]
 
-更改Basic DQN的网络结构,使用优化技巧使网络平衡地更新到 state value 和 advantage action(state-dependent) value (图7).
+更改Basic DQN的网络结构.
 ![6]
 
+使用优化技巧使网络平衡地更新到 state value 和 advantage action(state-dependent) value.
 ![7]
 
 [1]: images/DQN%20with%20Experience%20Replay.png
