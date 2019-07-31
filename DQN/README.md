@@ -1,7 +1,7 @@
 # DQN 系列算法实现
 Deep Reinforcement Learning的入门级算法
-Deep Q-learning Network估计 action-value 映射函数,使用Experience-Replay采样,
-可有效提升 data efficiency,并且能够处理 non-stationary situation.
+
+Deep Q-learning Network估计 action-value 映射函数,使用Experience-Replay采样,可有效提升 data efficiency,并且能够处理 non-stationary situation.
 
 ## 算法细节及论文
 - *Basic DQN* [Playing Atari with Deep Reinforcement Learning][2]
