@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from DQN.Net import Net
+from DQN.Net import DuelingNet
 from DQN.experience_replay import MemoryReplay, Transition
 
 env = gym.make('CartPole-v0')
@@ -35,7 +35,7 @@ class DQN:
         self.num_learn_step = 0
 
         self.memory = MemoryReplay(memory_size)
-        self.eval_net, self.target_net = Net(num_states, num_actions), Net(num_states, num_actions)
+        self.eval_net, self.target_net = DuelingNet(num_states, num_actions), DuelingNet(num_states, num_actions)
         self.optimizer = optim.Adam(self.eval_net.parameters(), lr=learning_rate)
         self.loss_func = nn.MSELoss()
 
