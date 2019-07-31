@@ -40,4 +40,4 @@ Double DQN的动作值估计形式如下(论文中说对偶形式等价即交换
 [5]: https://arxiv.org/abs/1511.06581
 [6]: images/Dueling%20DQN%20Network.png
 [7]: images/Dueling%20DQN%20optimization%20for%20identifiability.png
-[8]: images/Double%20Q-learning%20error.png
+[8]: images/Double%20Q-learning%20eval.png
