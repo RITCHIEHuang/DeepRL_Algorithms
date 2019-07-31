@@ -19,10 +19,10 @@ Deep Q-learning Network估计 action-value 映射函数,使用Experience-Replay�
 
 ![7]
 
-[1]: DQN%20with%20Experience%20Replay.png
+[1]: images/DQN%20with%20Experience%20Replay.png
 [2]: https://arxiv.org/abs/1312.5602
 [3]: https://arxiv.org/abs/1509.06461
-[4]: Double%20DQN%20Algorithm.png
+[4]: images/Double%20DQN%20Algorithm.png
 [5]: https://arxiv.org/abs/1511.06581
-[6]: Dueling%20DQN%20Network.png
-[7]: Dueling%20DQN%20optimization%20for%20identifiability.png
+[6]: images/Dueling%20DQN%20Network.png
+[7]: images/Dueling%20DQN%20optimization%20for%20identifiability.png
