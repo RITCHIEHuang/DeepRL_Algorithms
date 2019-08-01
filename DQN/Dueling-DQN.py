@@ -101,6 +101,10 @@ def run():
             r1 = (env.x_threshold - abs(x)) / env.x_threshold - 0.8
             r2 = (env.theta_threshold_radians - abs(theta)) / env.theta_threshold_radians - 0.5
             r = r1 + r2
+            dqn.memory.push(torch.tensor([state]),
+                            torch.tensor([action]),
+                            torch.tensor([r]),
+                            torch.tensor([next_state]))
             episode_reward += r
 
             if len(dqn.memory) >= memory_size:

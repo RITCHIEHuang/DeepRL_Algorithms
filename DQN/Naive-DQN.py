@@ -1,8 +1,11 @@
 import gym
 import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
+
+import matplotlib.pyplot as plt
 
 from DQN.Net import Net
 from DQN.experience_replay import MemoryReplay, Transition
@@ -18,9 +21,9 @@ class NaiveDQN:
     def __init__(self, learning_rate=0.01,
                  gamma=0.90,
                  batch_size=32,
-                 epsilon=0.95,
+                 epsilon=0.90,
                  memory_size=20000,
-                 update_target_gap=100,
+                 update_target_gap=20,
                  enable_gpu=False):
         # if enable_gpu:
         #     self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -39,7 +42,7 @@ class NaiveDQN:
 
     # greedy 策略动作选择
     def choose_action(self, state):
-        state = torch.unsqueeze(torch.tensor(state), 0)
+        state = torch.tensor(state).unsqueeze(0)
         if np.random.uniform() <= self.epsilon:  # greedy policy
             action_val = self.eval_net(state.float())
             action = torch.max(action_val, 1)[1].numpy()
@@ -58,8 +61,8 @@ class NaiveDQN:
         sample = self.memory.sample(self.batch_size)
         batch = Transition(*zip(*sample))
         batch_state = torch.cat(batch.state)
-        batch_action = torch.stack(batch.action, 0)
-        batch_reward = torch.stack(batch.reward, 0)
+        batch_action = torch.cat(batch.action).unsqueeze(-1)
+        batch_reward = torch.cat(batch.reward).unsqueeze(-1)
         batch_next_state = torch.cat(batch.next_state)
 
         # 训练网络 eval_net
@@ -67,7 +70,6 @@ class NaiveDQN:
         q_next = self.target_net(batch_next_state.float())
         # current_reward + gamma * max_Q_eval(next_state)
         q_target = batch_reward + self.gamma * q_next.max(1)[0].view(self.batch_size, 1)
-
         # 计算误差
         loss = self.loss_func(q_eval, q_target)
 
@@ -78,10 +80,16 @@ class NaiveDQN:
 
 
 def run():
-    episodes = 20
-    memory_size = 50
+    episodes = 400
+    memory_size = 2000
     dqn = NaiveDQN(enable_gpu=False, memory_size=memory_size)
 
+    plt.ion()
+    plt.xlabel('iteration')
+    plt.ylabel('episode reward')
+    plt.show()
+
+    iterations_, rewards_ = [], []
     # 迭代所有episodes进行采样
     for i in range(episodes):
         # 当前episode开始
@@ -92,26 +100,34 @@ def run():
             env.render()
             action = dqn.choose_action(state)
             next_state, reward, done, info = env.step(action)
-            dqn.memory.push(torch.tensor([state]),
-                            torch.tensor([action]),
-                            torch.tensor([reward]),
-                            torch.tensor([next_state]))
-            x, x_dot, theta, theta_hot = next_state
 
+            x, x_dot, theta, theta_hot = next_state
             r1 = (env.x_threshold - abs(x)) / env.x_threshold - 0.8
             r2 = (env.theta_threshold_radians - abs(theta)) / env.theta_threshold_radians - 0.5
             r = r1 + r2
+            dqn.memory.push(torch.tensor([state]),
+                            torch.tensor([action]),
+                            torch.tensor([r]),
+                            torch.tensor([next_state]))
             episode_reward += r
 
             if len(dqn.memory) >= memory_size:
                 dqn.learn()
                 if done:
+                    iterations_.append(i)
+                    rewards_.append(episode_reward)
+
+                    plt.cla()
+                    plt.plot(iterations_, rewards_)
+                    # plt.pause(0.001)
+
                     print("episode: {} , the episode reward is {}".format(i, round(episode_reward, 3)))
             # 当前episode　结束
             if done:
                 break
             state = next_state
     env.close()
+    plt.ioff()
 
 
 if __name__ == '__main__':

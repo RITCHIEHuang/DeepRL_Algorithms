@@ -64,7 +64,7 @@ class DoubleQN:
 
         # 训练网络 eval_net
         q_eval_ = self.eval_net(batch_state.float()).gather(1, batch_action)
-        q_eval = self.eval_net(batch_next_state.float())
+        q_eval = self.eval_net(batch_next_state.float()).detach()
         max_a = q_eval.max(1)[1].view(self.batch_size, 1)
         # 不更新 target_net参数
         q_next = self.target_net(batch_next_state.float()).detach()
@@ -103,6 +103,10 @@ def run():
             r1 = (env.x_threshold - abs(x)) / env.x_threshold - 0.8
             r2 = (env.theta_threshold_radians - abs(theta)) / env.theta_threshold_radians - 0.5
             r = r1 + r2
+            dqn.memory.push(torch.tensor([state]),
+                            torch.tensor([action]),
+                            torch.tensor([r]),
+                            torch.tensor([next_state]))
             episode_reward += r
 
             if len(dqn.memory) >= memory_size:
