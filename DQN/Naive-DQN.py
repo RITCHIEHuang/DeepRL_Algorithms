@@ -16,9 +16,9 @@ num_actions = env.action_space.n
 
 class NaiveDQN:
     def __init__(self, learning_rate=0.01,
-                 gamma=0.90,
-                 batch_size=128,
-                 epsilon=0.90,
+                 gamma=0.99,
+                 batch_size=32,
+                 epsilon=0.95,
                  episodes=4000,
                  memory_size=20000,
                  update_target_gap=100,
@@ -35,22 +35,27 @@ class NaiveDQN:
         self.num_learn_step = 0
 
         self.memory = MemoryReplay(memory_size)
-        self.eval_net = Net(num_states, num_actions)
+        self.eval_net, self.target_net = Net(num_states, num_actions), Net(num_states, num_actions)
         self.optimizer = optim.Adam(self.eval_net.parameters(), lr=learning_rate)
         self.loss_func = nn.MSELoss()
 
     # greedy 策略动作选择
     def choose_action(self, state):
         state = torch.unsqueeze(torch.tensor(state), 0)
-        if np.random.randn() <= self.epsilon:  # greedy policy
-            action_val = self.eval_net.forward(state.float())
-            action = torch.max(action_val, 1)[1].data.numpy()
+        if np.random.uniform() <= self.epsilon:  # greedy policy
+            action_val = self.eval_net(state.float())
+            action = torch.max(action_val, 1)[1].numpy()
             return action[0]
         else:
             action = np.random.randint(0, num_actions)
             return action
 
     def learn(self):
+        # 更新目标网络 target_net
+        if self.num_learn_step % self.update_target_gap == 0:
+            self.target_net.load_state_dict(self.eval_net.state_dict())
+        self.num_learn_step += 1
+
         # 从Memory中采batch
         sample = self.memory.sample(self.batch_size)
         batch = Transition(*zip(*sample))
@@ -61,7 +66,7 @@ class NaiveDQN:
 
         # 训练网络 eval_net
         q_eval = self.eval_net(batch_state.float()).gather(1, batch_action)
-        q_next = self.eval_net(batch_next_state.float())
+        q_next = self.target_net(batch_next_state.float())
         # current_reward + gamma * max_Q_eval(next_state)
         q_target = batch_reward + self.gamma * q_next.max(1)[0].view(self.batch_size, 1)
 
@@ -79,7 +84,6 @@ def run():
     memory_size = 2000
     dqn = NaiveDQN(enable_gpu=False)
 
-    sample_memory_counter = 0
     # 迭代所有episodes进行采样
     for i in range(episodes):
         # 当前episode开始
@@ -94,8 +98,13 @@ def run():
                             torch.tensor([action]),
                             torch.tensor([reward]),
                             torch.tensor([next_state]))
-            sample_memory_counter += 1
-            episode_reward += reward
+
+            x, x_dot, theta, theta_hot = next_state
+
+            r1 = (env.x_threshold - abs(x)) / env.x_threshold - 0.8
+            r2 = (env.theta_threshold_radians - abs(theta)) / env.theta_threshold_radians - 0.5
+            r = r1 + r2
+            episode_reward += r
 
             if len(dqn.memory) >= memory_size:
                 dqn.learn()

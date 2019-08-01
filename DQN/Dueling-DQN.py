@@ -17,7 +17,7 @@ num_actions = env.action_space.n
 class DuelingDQN:
     def __init__(self, learning_rate=0.01,
                  gamma=0.90,
-                 batch_size=128,
+                 batch_size=32,
                  epsilon=0.90,
                  episodes=4000,
                  memory_size=20000,
@@ -42,9 +42,9 @@ class DuelingDQN:
     # greedy 策略动作选择
     def choose_action(self, state):
         state = torch.unsqueeze(torch.tensor(state), 0)
-        if np.random.randn() <= self.epsilon:  # greedy policy
-            action_val = self.eval_net.forward(state.float())
-            action = torch.max(action_val, 1)[1].data.numpy()
+        if np.random.uniform() <= self.epsilon:  # greedy policy
+            action_val = self.eval_net(state.float())
+            action = action_val.max(1)[1].numpy()
             return action[0]
         else:
             action = np.random.randint(0, num_actions)
@@ -52,7 +52,7 @@ class DuelingDQN:
 
     def learn(self):
         # 更新目标网络 target_net
-        if self.num_learn_step % self.update_target_gap:
+        if self.num_learn_step % self.update_target_gap == 0:
             self.target_net.load_state_dict(self.eval_net.state_dict())
         self.num_learn_step += 1
 
@@ -84,7 +84,6 @@ def run():
     memory_size = 2000
     dqn = DuelingDQN(enable_gpu=False)
 
-    sample_memory_counter = 0
     # 迭代所有episodes进行采样
     for i in range(episodes):
         # 当前episode开始
@@ -99,8 +98,12 @@ def run():
                             torch.tensor([action]),
                             torch.tensor([reward]),
                             torch.tensor([next_state]))
-            sample_memory_counter += 1
-            episode_reward += reward
+
+            x, x_dot, theta, theta_hot = next_state
+            r1 = (env.x_threshold - abs(x)) / env.x_threshold - 0.8
+            r2 = (env.theta_threshold_radians - abs(theta)) / env.theta_threshold_radians - 0.5
+            r = r1 + r2
+            episode_reward += r
 
             if len(dqn.memory) >= memory_size:
                 dqn.learn()

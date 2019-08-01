@@ -7,20 +7,20 @@ import torch.nn.functional as F
 class Net(nn.Module):
     def __init__(self, num_states, num_actions):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(num_states, 50)
-        self.fc1.weight.data.normal_(0, 0.1)
-        self.fc2 = nn.Linear(50, 30)
-        self.fc2.weight.data.normal_(0, 0.1)
-        self.out = nn.Linear(30, num_actions)
-        self.out.weight.data.normal_(0, 0.1)
+
+        self.net = nn.Sequential(
+            nn.Linear(num_states, 50),
+            nn.ReLU(),
+            nn.Linear(50, num_actions)
+        )
+
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                m.weight.data.normal_(0, 0.1)
 
     def forward(self, x):
-        x = self.fc1(x)
-        x = F.relu(x)
-        x = self.fc2(x)
-        x = F.relu(x)
-        activation = self.out(x)
-        return activation
+        out = self.net(x)
+        return out
 
 
 class DuelingNet(nn.Module):
@@ -28,17 +28,13 @@ class DuelingNet(nn.Module):
         super(DuelingNet, self).__init__()
         self.fc1 = nn.Linear(num_states, 50)
         self.fc1.weight.data.normal_(0, 0.1)
-        self.fc2 = nn.Linear(50, 30)
-        self.fc2.weight.data.normal_(0, 0.1)
-        self.state_out = nn.Linear(30, 1)
+        self.state_out = nn.Linear(50, 1)
         self.state_out.weight.data.normal_(0, 0.1)
-        self.advantage_out = nn.Linear(30, num_actions)
+        self.advantage_out = nn.Linear(50, num_actions)
         self.advantage_out.weight.data.normal_(0, 0.1)
 
     def forward(self, x):
         x = self.fc1(x)
-        x = F.relu(x)
-        x = self.fc2(x)
         x = F.relu(x)
 
         state_value = self.state_out(x)
