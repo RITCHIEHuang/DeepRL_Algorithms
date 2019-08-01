@@ -19,7 +19,6 @@ class DoubleQN:
                  gamma=0.90,
                  batch_size=32,
                  epsilon=0.90,
-                 episodes=4000,
                  memory_size=20000,
                  update_target_gap=100,
                  enable_gpu=False):
@@ -28,7 +27,6 @@ class DoubleQN:
 
         self.gamma = gamma
         self.batch_size = batch_size
-        self.episodes = episodes
         self.update_target_gap = update_target_gap
         self.epsilon = epsilon
 
@@ -44,7 +42,7 @@ class DoubleQN:
         state = torch.unsqueeze(torch.tensor(state), 0)
         if np.random.uniform() <= self.epsilon:  # greedy policy
             action_val = self.eval_net(state.float())
-            action = torch.max(action_val, 1)[1].data.numpy()
+            action = torch.max(action_val, 1)[1].numpy()
             return action[0]
         else:
             action = np.random.randint(0, num_actions)
@@ -66,7 +64,7 @@ class DoubleQN:
 
         # 训练网络 eval_net
         q_eval_ = self.eval_net(batch_state.float()).gather(1, batch_action)
-        q_eval = self.eval_net(batch_next_state.float()).gather(1, batch_action)
+        q_eval = self.eval_net(batch_next_state.float())
         max_a = q_eval.max(1)[1].view(self.batch_size, 1)
         # 不更新 target_net参数
         q_next = self.target_net(batch_next_state.float()).detach()
@@ -84,7 +82,7 @@ class DoubleQN:
 def run():
     episodes = 400
     memory_size = 2000
-    dqn = DoubleQN(enable_gpu=False)
+    dqn = DoubleQN(enable_gpu=False, memory_size=memory_size)
 
     # 迭代所有episodes进行采样
     for i in range(episodes):

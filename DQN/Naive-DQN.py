@@ -16,10 +16,9 @@ num_actions = env.action_space.n
 
 class NaiveDQN:
     def __init__(self, learning_rate=0.01,
-                 gamma=0.99,
+                 gamma=0.90,
                  batch_size=32,
                  epsilon=0.95,
-                 episodes=4000,
                  memory_size=20000,
                  update_target_gap=100,
                  enable_gpu=False):
@@ -28,7 +27,6 @@ class NaiveDQN:
 
         self.gamma = gamma
         self.batch_size = batch_size
-        self.episodes = episodes
         self.update_target_gap = update_target_gap
         self.epsilon = epsilon
 
@@ -80,9 +78,9 @@ class NaiveDQN:
 
 
 def run():
-    episodes = 400
-    memory_size = 2000
-    dqn = NaiveDQN(enable_gpu=False)
+    episodes = 20
+    memory_size = 50
+    dqn = NaiveDQN(enable_gpu=False, memory_size=memory_size)
 
     # 迭代所有episodes进行采样
     for i in range(episodes):
@@ -98,7 +96,6 @@ def run():
                             torch.tensor([action]),
                             torch.tensor([reward]),
                             torch.tensor([next_state]))
-
             x, x_dot, theta, theta_hot = next_state
 
             r1 = (env.x_threshold - abs(x)) / env.x_threshold - 0.8

@@ -19,7 +19,6 @@ class DuelingDQN:
                  gamma=0.90,
                  batch_size=32,
                  epsilon=0.90,
-                 episodes=4000,
                  memory_size=20000,
                  update_target_gap=100,
                  enable_gpu=False):
@@ -28,7 +27,6 @@ class DuelingDQN:
 
         self.gamma = gamma
         self.batch_size = batch_size
-        self.episodes = episodes
         self.update_target_gap = update_target_gap
         self.epsilon = epsilon
 
@@ -82,7 +80,7 @@ class DuelingDQN:
 def run():
     episodes = 400
     memory_size = 2000
-    dqn = DuelingDQN(enable_gpu=False)
+    dqn = DuelingDQN(enable_gpu=False, memory_size=memory_size)
 
     # 迭代所有episodes进行采样
     for i in range(episodes):
