@@ -8,6 +8,6 @@
     - [Dueling DQN][4]
 
 [1]: DQN
-[2]: DQN/Naive-DQN.py
-[3]: DQN/Double-DQN.py
-[4]: DQN/Dueling-DQN.py
+[2]: DQN/NaiveDQN.py
+[3]: DQN/DoubleDQN.py
+[4]: DQN/DuelingDQN.py
