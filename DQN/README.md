@@ -33,6 +33,15 @@ Double DQN的动作值估计形式如下(论文中说对偶形式等价即交换
 使用优化技巧使网络平衡地更新到 state value 和 advantage action(state-dependent) value.
 ![7]
 
+## 实践效果
+在gym的经典游戏CartPole-v0中的表现：
+
+![9]
+
+![10]
+
+![11]
+
 [1]: images/DQN%20with%20Experience%20Replay.png
 [2]: https://arxiv.org/abs/1312.5602
 [3]: https://arxiv.org/abs/1509.06461
@@ -41,3 +50,6 @@ Double DQN的动作值估计形式如下(论文中说对偶形式等价即交换
 [6]: images/Dueling%20DQN%20Network.png
 [7]: images/Dueling%20DQN%20optimization%20for%20identifiability.png
 [8]: images/Double%20Q-learning%20eval.png
+[9]: images/DQN.png
+[10]: images/DDQN.png
+[11]: images/DuelingDQN.png

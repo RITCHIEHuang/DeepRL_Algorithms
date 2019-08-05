@@ -1,26 +1,21 @@
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-
 import torch
+from tensorboardX import SummaryWriter
 
 from DQN.DoubleDQN import DoubleDQN
 from DQN.DuelingDQN import DuelingDQN
 from DQN.NaiveDQN import NaiveDQN
 from Utils.env_utils import get_env_space
-from Utils.plot_util import Plot
+
+model_data = {}
 
 
 class Bechmark:
-    def __init__(self):
-        self.plot = None
+    def __init__(self, writer):
+        self.writer = writer
 
-    def setup_plot(self, plot_refresh=0.001, x_label=None, y_label=None, title=None):
-        self.plot = Plot(plot_refresh)
-        self.plot.set_label_and_title(x_label, y_label, title)
-
-    def run(self, env_id, alg_id, enalbe_gpu=True, num_episodes=1000, num_memory=5000):
+    def run(self, env_id, alg_id, enalbe_gpu=True, num_episodes=400, num_memory=2000):
         episodes = num_episodes
         memory_size = num_memory
-
         env, num_states, num_actions = get_env_space(env_id)
 
         if alg_id == 'DQN':
@@ -63,7 +58,11 @@ class Bechmark:
                         iterations_.append(i)
                         rewards_.append(episode_reward)
 
-                        self.plot.add_plot(iterations_, rewards_, str(alg_id))
+                        writer.add_scalar(alg_id, episode_reward, i)
+                        # model_data[alg_id + '_x'] = iterations_
+                        # model_data[alg_id + '_y'] = rewards_
+                        # plot.add_plot(iterations_, rewards_, color, label=alg_id, x_label='Iterations',
+                        #               y_label='Rewards', title=env_id)
                         print("episode: {} , the episode reward is {}".format(i, round(episode_reward, 3)))
                 # 当前episode　结束
                 if done:
@@ -73,16 +72,14 @@ class Bechmark:
 
 
 if __name__ == '__main__':
-    bench = Bechmark()
+    writer = SummaryWriter()
+    bench = Bechmark(writer)
     env_id = 'CartPole-v0'
-    bench.setup_plot(0.001, 'Iterations', 'Rewards', env_id)
 
-    envs = [env_id, env_id, env_id]
-    algs = ['DQN', 'DoubleDQN', 'DuelingDQN']
+    # envs = [env_id, env_id, env_id]
+    envs = [env_id]
+    # algs = ['DQN', 'DoubleDQN', 'DuelingDQN']
+    algs = ['DuelingDQN']
 
     list(map(bench.run, envs, algs))
-    # with ProcessPoolExecutor() as pool:
-    #     pool.map(bench.run, envs, algs, gpus)
-    # bench.run(env_id, 'DQN', True)
-    # bench.run(env_id, 'DoubleDQN', True)
-    # bench.run(env_id, 'DuelingDQN', True)
+    writer.close()
