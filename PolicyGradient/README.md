@@ -15,7 +15,16 @@
 
 
 
+## 实践效果
+在gym的经典游戏MountainCar-v0中的表现：
+
+![3]
+
+![4]
+
 
 
 [1]: https://arxiv.org/abs/1506.05254
 [2]: images/REINFORCE%20alg.png
+[3]: images/reinforce-mountaincar.gif
+[4]: images/Reinforce%20MountainCar-v0.png

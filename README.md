@@ -3,14 +3,23 @@
 
 DQNs on CartPole-v0:
 
-![5] ![6] ![7]
+![5]![6]![7]
 
+
+PGs on MountainCar-v0:
+
+![11]
+
+![9]
 
 ## 1.算法列表
 1. [DQN系列(Naive DQN, Double DQN, Dueling DQN etc.)][1]
     - [Naive DQN][2]
     - [Double DQN][3]
     - [Dueling DQN][4]
+    
+2. [Policy Gradient系列(Reinforce, Vanilla PG, TRPO, PPO etc.)][8]
+    - [REINFORCE][5]
 
 [1]: DQN
 [2]: DQN/NaiveDQN.py
@@ -19,3 +28,7 @@ DQNs on CartPole-v0:
 [5]: DQN/images/DQN.png
 [6]: DQN/images/DDQN.png
 [7]: DQN/images/DuelingDQN.png
+[8]: PolicyGradient
+[9]: PolicyGradient/images/Reinforce%20MountainCar-v0.png
+[10]: PolicyGradient/REINFORCE.py
+[11]: PolicyGradient/images/reinforce-mountaincar.gif
