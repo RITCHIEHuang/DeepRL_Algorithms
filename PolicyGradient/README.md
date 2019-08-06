@@ -6,8 +6,16 @@
 
 其梯度计算依赖于对分布的随机采样,pytorch等计算图框架中封装了这类的算法，其梯度计算原理见[Gradient Estimation Using Stochastic Computation Graphs][1]
 
+## 算法细节及论文
+- *REINFORCE* 
+
+这算是PG最入门的算法了,基于轨迹更新.当然也有time step更新的版本, 可以理解为将算法中第二步中对于i的求和式进行分解.
+
+![2]
+
 
 
 
 
 [1]: https://arxiv.org/abs/1506.05254
+[2]: images/REINFORCE%20alg.png
