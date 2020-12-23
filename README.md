@@ -47,7 +47,7 @@ Imitation learning learn from expert data.
 ## 3.Project Dependencies
 
 - Python >=3.6  
-- Tensorflow >= 2.1.0
+- Tensorflow >= 2.4.0
 - Pytorch >= 1.5.0  
 - Seaborn >= 0.10.0  
 - Click >= 7.0  
