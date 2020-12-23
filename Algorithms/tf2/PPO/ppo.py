@@ -15,7 +15,7 @@ from Common.GAE_tf2 import estimate_advantages
 from Common.MemoryCollector_tf2 import MemoryCollector
 from Utils.env_util import get_env_info
 from Utils.file_util import check_path
-from Utils.tf2_util import NDOUBLE
+from Utils.tf2_util import NDOUBLE, TDOUBLE
 from Utils.zfilter import ZFilter
 
 

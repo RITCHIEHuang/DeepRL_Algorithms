@@ -4,6 +4,7 @@
 import tensorflow as tf
 
 
+@tf.function
 def vpg_step(policy_net, value_net, optimizer_policy, optimizer_value, optim_value_iternum, states, actions,
              returns, advantages):
     """update critic"""
@@ -20,7 +21,8 @@ def vpg_step(policy_net, value_net, optimizer_policy, optimizer_value, optim_val
 
     """update policy"""
     with tf.GradientTape() as tape:
-        log_probs = policy_net.get_log_prob(states, actions)[:, None]
+        log_probs = tf.expand_dims(
+            policy_net.get_log_prob(states, actions), axis=-1)
         policy_loss = - tf.reduce_mean(log_probs * advantages)
 
     grads = tape.gradient(policy_loss, policy_net.trainable_variables)

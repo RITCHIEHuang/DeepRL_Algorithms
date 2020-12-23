@@ -30,7 +30,9 @@ def collect_samples(pid, queue, env, policy, render, running_state, min_batch_si
         for t in range(10000):
             if render:
                 env.render()
-            state_tensor = np.expand_dims(NDOUBLE(state), 0)
+
+            state_tensor = tf.expand_dims(
+                tf.convert_to_tensor(state, dtype=TDOUBLE), axis=0)
             action, log_prob = policy.get_action_log_prob(state_tensor)
             action = action.numpy()[0]
             log_prob = log_prob.numpy()[0] 
@@ -75,8 +77,10 @@ def merge_log(log_list):
     log['num_episodes'] = sum([x['num_episodes'] for x in log_list])
     log['num_steps'] = sum([x['num_steps'] for x in log_list])
     log['avg_reward'] = log['total_reward'] / log['num_episodes']
-    log['max_episode_reward'] = max([x['max_episode_reward'] for x in log_list])
-    log['min_episode_reward'] = min([x['min_episode_reward'] for x in log_list])
+    log['max_episode_reward'] = max(
+        [x['max_episode_reward'] for x in log_list])
+    log['min_episode_reward'] = min(
+        [x['min_episode_reward'] for x in log_list])
 
     return log
 
@@ -99,7 +103,8 @@ class MemoryCollector:
         for i in range(self.num_process - 1):
             worker_args = (i + 1, queue, self.env, self.policy,
                            False, self.running_state, process_batch_size)
-            workers.append(multiprocessing.Process(target=collect_samples, args=worker_args))
+            workers.append(multiprocessing.Process(
+                target=collect_samples, args=worker_args))
 
         for worker in workers:
             worker.start()

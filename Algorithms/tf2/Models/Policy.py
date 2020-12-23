@@ -6,8 +6,9 @@ import tensorflow as tf
 import tensorflow.keras.layers as layers
 
 from Algorithms.tf2.Models.BasePolicy import BasePolicy
-from Utils.tf2_util import NDOUBLE 
-from tensorflow_probability.python.distributions import Normal 
+from Utils.tf2_util import TDOUBLE
+from tensorflow_probability.python.distributions import Normal
+
 
 class Policy(BasePolicy):
 
@@ -22,32 +23,40 @@ class Policy(BasePolicy):
         self.policy.build(input_shape=(None, self.dim_state))
 
         self.log_std = tf.Variable(name="action_log_std",
-                                   initial_value=np.zeros((1, dim_action), dtype=NDOUBLE) * log_std,
+                                   initial_value=tf.zeros(
+                                       (1, dim_action), dtype=TDOUBLE) * log_std,
                                    trainable=True)
 
+    @tf.function
     def _get_dist(self, states):
         mean = self.policy(states)
-        log_std = tf.tile(
-            input=self.log_std,
-            multiples=[mean.shape[0], 1])
-        return Normal(mean, tf.exp(log_std))
+        log_std = tf.ones_like(mean) * self.log_std
+        std = tf.exp(log_std)
+        return mean, std
 
+    @tf.function
     def call(self, states, **kwargs):
-        dist = self._get_dist(states)
+        mean, std = self._get_dist(states)
+        dist = Normal(mean, std)
         action = dist.sample()
         log_prob = tf.reduce_sum(dist.log_prob(action), -1)
         return action, log_prob
 
+    @tf.function
     def get_log_prob(self, states, actions):
-        dist = self._get_dist(states)
+        mean, std = self._get_dist(states)
+        dist = Normal(mean, std)
         log_prob = tf.reduce_sum(dist.log_prob(actions), -1)
         return log_prob
 
+    @tf.function
     def get_action_log_prob(self, states):
         return self.call(states)
 
+    @tf.function
     def get_entropy(self, states):
-        dist = self._get_dist(states)
+        mean, std = self._get_dist(states)
+        dist = Normal(mean, std)
         return tf.reduce_sum(dist.entropy(), -1)
 
     def get_kl(self, states):

@@ -7,7 +7,7 @@ max_iter=2000
 alg=PPO
 version=tf2
 
-for (( j = 1; j <= seeds; ++j )); do
+for (( j = 2; j <= seeds; ++j )); do
     for (( i = 0; i < ${#envs[@]}; ++i )); do
         echo ============================================
         echo starting Env: ${envs[$i]} ----- Exp_id $j
