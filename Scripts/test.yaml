@@ -1,0 +1,8 @@
+session_name: test-session
+windows:
+- layout: tiled
+  panes:
+  - rl && python
+  - pwd
+  - rl && echo `pwd`
+  window_name: test-window

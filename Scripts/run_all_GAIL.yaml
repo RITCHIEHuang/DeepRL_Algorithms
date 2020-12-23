@@ -1,0 +1,23 @@
+session_name: run-all-GAIL
+start_directory: ~/PycharmProjects/DeepRL_Algorithms
+windows:
+- layout: tiled
+  panes:
+  - rl && python -m Algorithms.pytorch.GAIL.main --env_id HalfCheetah-v3 --save_model_path
+    ./Algorithms/pytorch/GAIL/trained_models --num_process 16 --render False --config_path
+    ./Algorithms/pytorch/GAIL/config/config.yml --expert_data_path ./Algorithms/pytorch/GAIL/data/HalfCheetah-v3.npz
+    --log_path ./Algorithms/pytorch/GAIL/log
+  - rl && python -m Algorithms.pytorch.GAIL.main --env_id Hopper-v3 --save_model_path
+    ./Algorithms/pytorch/GAIL/trained_models --num_process 16 --render False --config_path
+    ./Algorithms/pytorch/GAIL/config/config.yml --expert_data_path ./Algorithms/pytorch/GAIL/data/Hopper-v3.npz
+    --log_path ./Algorithms/pytorch/GAIL/log
+  - rl && python -m Algorithms.pytorch.GAIL.main --env_id Walker2d-v3 --save_model_path
+    ./Algorithms/pytorch/GAIL/trained_models --num_process 16 --render False --config_path
+    ./Algorithms/pytorch/GAIL/config/config.yml --expert_data_path ./Algorithms/pytorch/GAIL/data/Walker2d-v3.npz
+    --log_path ./Algorithms/pytorch/GAIL/log
+  - rl && python -m Algorithms.pytorch.GAIL.main --env_id Ant-v3 --save_model_path
+    ./Algorithms/pytorch/GAIL/trained_models --num_process 16 --render False --config_path
+    ./Algorithms/pytorch/GAIL/config/config.yml --expert_data_path ./Algorithms/pytorch/GAIL/data/Ant-v3.npz
+    --log_path ./Algorithms/pytorch/GAIL/log
+  - rl && tensorboard --logdir=./Algorithms/pytorch/GAIL/log
+  window_name: GAIL
