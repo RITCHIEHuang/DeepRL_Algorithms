@@ -182,10 +182,18 @@ def make_plot(data, x_axis=None, y_axis=None, title=None, hue=None, smooth=1, es
 # @click.option("--hue", type=str, default="algorithm", help="Hue for legend")
 def main(log_dir='../Algorithms/pytorch/log/', x_axis='num episodes', y_axis=['average reward'], hue='algorithm',
          env_filter_func=None, alg_filter_func=None):
-    """
+    """plot performance of all environments and algorithms 
+
     1. traverse all environments and plots for all algos tensorboard logs in that environment
     2. generate a dataframe for each environment, which contains all algos tensorboard log information 
-    :return:
+
+    Args:
+        log_dir (str, optional): Directory of tensorboard log files. Defaults to '../Algorithms/pytorch/log/'.
+        x_axis (str, optional): X label of plot. Defaults to 'num episodes'.
+        y_axis (list, optional): Y label of plot. Defaults to ['average reward'].
+        hue (str, optional): [description]. Defaults to 'algorithm'.
+        env_filter_func ([type], optional): Filter function to select enviroments. Defaults to None.
+        alg_filter_func ([type], optional): Filter function to select algorithms. Defaults to None.
     """
     plot_all_logs(log_dir=log_dir, x_axis=x_axis, y_axis=y_axis, hue=hue,
                   smooth=11,
