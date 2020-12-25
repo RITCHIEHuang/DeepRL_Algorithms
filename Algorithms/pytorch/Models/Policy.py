@@ -34,7 +34,8 @@ class Policy(BasePolicy):
         if self.use_sac:
             self.log_std = nn.Linear(self.dim_hidden, self.dim_action)
         else:
-            self.log_std = nn.Parameter(torch.ones(1, self.dim_action) * log_std, requires_grad=True)
+            self.log_std = nn.Parameter(torch.ones(
+                1, self.dim_action) * log_std, requires_grad=True)
 
         self.apply(init_weight)
 
@@ -66,7 +67,7 @@ class Policy(BasePolicy):
         u = dist.rsample()
         log_prob = dist.log_prob(u)
         action = torch.tanh(u)
-        log_prob -= (torch.log(1. - action.pow(2) + eps)).sum(dim=-1)
+        log_prob -= (torch.log(1. - action.pow(2) + eps))
         # log_prob = dist.log_prob(u).sum(dim=-1) - (2*(np.log(2) - u - F.softplus(-2*u))).sum(dim=-1)
         return action * self.max_action, log_prob
 
@@ -76,11 +77,13 @@ class Policy(BasePolicy):
 
     def get_kl(self, x):
         assert not self.use_sac, "Expect non SAC algorithm !!!"
+        x = self.common(x)
         mean = self.policy(x)
         mean_old = mean.detach()
         log_std = self.log_std.expand_as(mean)
         log_std_old = log_std.detach()
         std = torch.exp(log_std)
         std_old = std.detach()
-        kl = -1 / 2 + log_std - log_std_old + (std_old.pow(2) + (mean_old - mean).pow(2)) / (2 * std.pow(2))
+        kl = -1 / 2 + log_std - log_std_old + \
+            (std_old.pow(2) + (mean_old - mean).pow(2)) / (2 * std.pow(2))
         return kl.sum(dim=1, keepdim=True)

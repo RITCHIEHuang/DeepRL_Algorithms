@@ -23,7 +23,8 @@ def ppo_step(policy_net, value_net, optimizer_policy, optimizer_value, optim_val
     surr1 = ratio * advantages
     surr2 = torch.clamp(ratio, 1.0 - clip_epsilon, 1.0 + clip_epsilon) * advantages
     policy_surr = -torch.min(surr1, surr2).mean()
-
+    print(states.shape, actions.shape, old_log_probs.shape, advantages.shape)
+    print(log_probs.shape, ratio.shape, surr1.shape, surr2.shape)
     ent = policy_net.get_entropy(states)
     entbonous = -ent_coeff * ent.mean()
     optim_gain = policy_surr + entbonous

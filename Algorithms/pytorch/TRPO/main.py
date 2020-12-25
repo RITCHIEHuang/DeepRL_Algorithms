@@ -17,7 +17,7 @@ from Algorithms.pytorch.TRPO.trpo import TRPO
 @click.option("--tau", type=float, default=0.95, help="GAE factor")
 @click.option("--max_kl", type=float, default=1e-2, help="kl constraint for TRPO")
 @click.option("--damping", type=float, default=1e-2, help="damping for TRPO")
-@click.option("--batch_size", type=int, default=4000, help="Batch size")
+@click.option("--batch_size", type=int, default=1000, help="Batch size")
 @click.option("--max_iter", type=int, default=1000, help="Maximum iterations to run")
 @click.option("--eval_iter", type=int, default=50, help="Iterations to evaluate the model")
 @click.option("--save_iter", type=int, default=50, help="Iterations to save the model")

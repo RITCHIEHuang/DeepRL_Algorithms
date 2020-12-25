@@ -7,12 +7,12 @@ max_iter=2000
 
 version=tf2
 alg=VPG
-for (( j = 2; j <= seeds; ++j )); do
+for (( j = 1; j <= seeds; ++j )); do
     for (( i = 0; i < ${#envs[@]}; ++i )); do
         echo ============================================
         echo starting Env: ${envs[$i]} ----- Exp_id $j
 
-        python -m Algorithms.${version}.${alg}.main --env_id ${envs[$i]} --max_iter ${max_iter} --model_path Algorithms/${version}/${alg}/trained_models --seed $j --num_process 1 --batch_size 1024
+        python -m Algorithms.${version}.${alg}.main --env_id ${envs[$i]} --max_iter ${max_iter} --model_path Algorithms/${version}/${alg}/trained_models --seed $j --num_process 1 --batch_size 1000
 
         echo finishing Env: ${envs[$i]} ----- Exp_id $j
         echo ============================================

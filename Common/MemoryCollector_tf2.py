@@ -35,7 +35,7 @@ def collect_samples(pid, queue, env, policy, render, running_state, min_batch_si
                 tf.convert_to_tensor(state, dtype=TDOUBLE), axis=0)
             action, log_prob = policy.get_action_log_prob(state_tensor)
             action = action.numpy()[0]
-            log_prob = log_prob.numpy()[0] 
+            log_prob = log_prob.numpy()[0]
             next_state, reward, done, _ = env.step(action)
             episode_reward += reward
 

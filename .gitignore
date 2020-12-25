@@ -133,3 +133,4 @@ log/
 *trained_models/
 *data/
 .history/
+.vscode/
