@@ -19,7 +19,7 @@ from Algorithms.pytorch.PPO.ppo import PPO
 @click.option("--gamma", type=float, default=0.99, help="Discount factor")
 @click.option("--tau", type=float, default=0.95, help="GAE factor")
 @click.option("--epsilon", type=float, default=0.2, help="Clip rate for PPO")
-@click.option("--batch_size", type=int, default=4000, help="Batch size")
+@click.option("--batch_size", type=int, default=1000, help="Batch size")
 @click.option("--ppo_mini_batch_size", type=int, default=0,
               help="PPO mini-batch size (default 0 -> don't use mini-batch update)")
 @click.option("--ppo_epochs", type=int, default=10, help="PPO step")

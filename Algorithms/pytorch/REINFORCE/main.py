@@ -13,7 +13,7 @@ from Algorithms.pytorch.REINFORCE.reinforce import REINFORCE
 @click.option("--num_process", type=int, default=4, help="Number of process to run environment")
 @click.option("--lr_p", type=float, default=3e-4, help="Learning rate for Policy Net")
 @click.option("--gamma", type=float, default=0.99, help="Discount factor")
-@click.option("--batch_size", type=int, default=4000, help="Batch size")
+@click.option("--batch_size", type=int, default=1000, help="Batch size")
 @click.option("--reinforce_epochs", type=int, default=5, help="Reinforce step")
 @click.option("--max_iter", type=int, default=1000, help="Maximum iterations to run")
 @click.option("--eval_iter", type=int, default=50, help="Iterations to evaluate the model")

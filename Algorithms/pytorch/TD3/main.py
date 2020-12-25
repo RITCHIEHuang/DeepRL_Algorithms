@@ -20,7 +20,7 @@ from Algorithms.pytorch.TD3.td3 import TD3
 @click.option("--target_action_noise_clip", type=float, default=0.5, help="Clip ratio for target action noise")
 @click.option("--explore_size", type=int, default=10000, help="Explore steps before execute deterministic policy")
 @click.option("--memory_size", type=int, default=1000000, help="Size of replay memory")
-@click.option("--step_per_iter", type=int, default=4000, help="Number of steps of interaction in each iteration")
+@click.option("--step_per_iter", type=int, default=1000, help="Number of steps of interaction in each iteration")
 @click.option("--batch_size", type=int, default=256, help="Batch size")
 @click.option("--min_update_step", type=int, default=1000, help="Minimum interacts for updating")
 @click.option("--update_step", type=int, default=50, help="Steps between updating policy and critic")

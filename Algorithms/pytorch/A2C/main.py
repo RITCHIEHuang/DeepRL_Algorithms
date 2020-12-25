@@ -17,7 +17,7 @@ from Algorithms.pytorch.A2C.a2c import A2C
 @click.option("--entropy_coeff", type=float, default=1e-2, help="Coefficient for entropy loss")
 @click.option("--gamma", type=float, default=0.99, help="Discount factor")
 @click.option("--tau", type=float, default=0.95, help="GAE factor")
-@click.option("--batch_size", type=int, default=4000, help="Batch size")
+@click.option("--batch_size", type=int, default=1000, help="Batch size")
 @click.option("--max_iter", type=int, default=1000, help="Maximum iterations to run")
 @click.option("--eval_iter", type=int, default=50, help="Iterations to evaluate the model")
 @click.option("--save_iter", type=int, default=50, help="Iterations to save the model")
