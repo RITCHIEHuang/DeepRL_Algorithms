@@ -15,9 +15,11 @@ def doubledqn_step(value_net, optimizer_value, value_net_target, states, actions
     q_values = value_net(states).gather(1, actions)
     with torch.no_grad():
         q_target_next_values = value_net(next_states)
-        q_target_actions = q_target_next_values.max(1)[1].view(q_values.size(0), 1)
+        q_target_actions = q_target_next_values.max(
+            1)[1].view(q_values.size(0), 1)
         q_next_values = value_net_target(next_states)
-        q_target_values = rewards + gamma * masks * q_next_values.gather(1, q_target_actions).view(q_values.size(0), 1)
+        q_target_values = rewards + gamma * masks * \
+            q_next_values.gather(1, q_target_actions).view(q_values.size(0), 1)
 
     value_loss = nn.MSELoss()(q_target_values, q_values)
 
@@ -32,4 +34,4 @@ def doubledqn_step(value_net, optimizer_value, value_net_target, states, actions
         # value_net_flat_params = get_flat_params(value_net)
         # set_flat_params(value_net_target, polyak * value_net_target_flat_params + (1 - polyak) * value_net_flat_params)
 
-    return value_loss
+    return {"critic_loss": value_loss}

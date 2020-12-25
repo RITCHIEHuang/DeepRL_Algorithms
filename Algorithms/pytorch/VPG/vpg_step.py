@@ -7,6 +7,7 @@ import torch.nn as nn
 def vpg_step(policy_net, value_net, optimizer_policy, optimizer_value, optim_value_iternum, states, actions,
              returns, advantages, l2_reg):
     """update critic"""
+    value_loss = None
     for _ in range(optim_value_iternum):
         values_pred = value_net(states)
         value_loss = nn.MSELoss()(values_pred, returns)
@@ -26,4 +27,6 @@ def vpg_step(policy_net, value_net, optimizer_policy, optimizer_value, optim_val
     torch.nn.utils.clip_grad_norm_(policy_net.parameters(), 40)
     optimizer_policy.step()
 
-    return value_loss, policy_loss
+    return {"critic_loss": value_loss,
+            "policy_loss": policy_loss
+            }

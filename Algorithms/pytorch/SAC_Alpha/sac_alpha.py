@@ -9,7 +9,7 @@ import torch.optim as optim
 from Algorithms.pytorch.Models.Policy import Policy
 from Algorithms.pytorch.Models.QValue import QValue
 from Algorithms.pytorch.SAC_Alpha.sac_alpha_step import sac_alpha_step
-from Common.fixed_size_replay_memory import FixedMemory
+from Common.replay_memory import Memory
 from Utils.env_util import get_env_info
 from Utils.file_util import check_path
 from Utils.torch_util import device, FLOAT
@@ -39,7 +39,7 @@ class SAC_Alpha:
         self.env_id = env_id
         self.gamma = gamma
         self.polyak = polyak
-        self.memory = FixedMemory(memory_size)
+        self.memory = Memory(memory_size)
         self.explore_size = explore_size
         self.step_per_iter = step_per_iter
         self.render = render
@@ -58,10 +58,12 @@ class SAC_Alpha:
 
     def _init_model(self):
         """init model from parameters"""
-        self.env, env_continuous, num_states, self.num_actions = get_env_info(self.env_id)
+        self.env, env_continuous, num_states, self.num_actions = get_env_info(
+            self.env_id)
         assert env_continuous, "SAC is only applicable to continuous environment !!!!"
 
-        self.action_low, self.action_high = self.env.action_space.low[0], self.env.action_space.high[0]
+        self.action_low, self.action_high = self.env.action_space.low[
+            0], self.env.action_space.high[0]
         self.target_entropy = - np.prod(self.env.action_space.shape)
         # seeding
         np.random.seed(self.seed)
@@ -89,10 +91,13 @@ class SAC_Alpha:
         self.q_net_target_1.load_state_dict(self.q_net_1.state_dict())
         self.q_net_target_2.load_state_dict(self.q_net_2.state_dict())
 
-        self.optimizer_p = optim.Adam(self.policy_net.parameters(), lr=self.lr_p)
+        self.optimizer_p = optim.Adam(
+            self.policy_net.parameters(), lr=self.lr_p)
         self.optimizer_a = optim.Adam([self.alpha], lr=self.lr_a)
-        self.optimizer_q_1 = optim.Adam(self.q_net_1.parameters(), lr=self.lr_q)
-        self.optimizer_q_2 = optim.Adam(self.q_net_2.parameters(), lr=self.lr_q)
+        self.optimizer_q_1 = optim.Adam(
+            self.q_net_1.parameters(), lr=self.lr_q)
+        self.optimizer_q_2 = optim.Adam(
+            self.q_net_2.parameters(), lr=self.lr_q)
 
     def choose_action(self, state):
         """select action"""
@@ -156,7 +161,8 @@ class SAC_Alpha:
 
                 if global_steps >= self.min_update_step and global_steps % self.update_step == 0:
                     for k in range(1, self.update_step + 1):
-                        batch = self.memory.sample(self.batch_size)  # random sample batch
+                        batch = self.memory.sample(
+                            self.batch_size)  # random sample batch
                         self.update(batch, k)
 
                 if done or num_steps >= self.step_per_iter:
@@ -183,13 +189,11 @@ class SAC_Alpha:
               f"average reward: {log['avg_reward']: .4f}")
 
         # record reward information
-        writer.add_scalars("sac_alpha",
-                           {"total reward": log['total_reward'],
-                            "average reward": log['avg_reward'],
-                            "min reward": log['min_episode_reward'],
-                            "max reward": log['max_episode_reward'],
-                            "num steps": log['num_steps']
-                            }, i_iter)
+        writer.add_scalar("total reward", log['total_reward'], i_iter)
+        writer.add_scalar("average reward", log['avg_reward'], i_iter)
+        writer.add_scalar("min reward", log['min_episode_reward'], i_iter)
+        writer.add_scalar("max reward", log['max_episode_reward'], i_iter)
+        writer.add_scalar("num steps", log['num_steps'], i_iter)
 
     def update(self, batch, k_iter):
         """learn model"""
@@ -200,12 +204,12 @@ class SAC_Alpha:
         batch_mask = FLOAT(batch.mask).to(device)
 
         # update by SAC Alpha
-        sac_alpha_step(self.policy_net, self.q_net_1, self.q_net_2, self.alpha, self.q_net_target_1,
-                       self.q_net_target_2,
-                       self.optimizer_p, self.optimizer_q_1, self.optimizer_q_2, self.optimizer_a, batch_state,
-                       batch_action, batch_reward, batch_next_state, batch_mask, self.gamma, self.polyak,
-                       self.target_entropy,
-                       k_iter % self.target_update_delay == 0)
+        alg_step_stats = sac_alpha_step(self.policy_net, self.q_net_1, self.q_net_2, self.alpha, self.q_net_target_1,
+                                        self.q_net_target_2,
+                                        self.optimizer_p, self.optimizer_q_1, self.optimizer_q_2, self.optimizer_a, batch_state,
+                                        batch_action, batch_reward, batch_next_state, batch_mask, self.gamma, self.polyak,
+                                        self.target_entropy,
+                                        k_iter % self.target_update_delay == 0)
 
     def save(self, save_path):
         """save model"""

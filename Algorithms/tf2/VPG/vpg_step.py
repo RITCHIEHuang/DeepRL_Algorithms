@@ -10,6 +10,7 @@ def vpg_step(policy_net, value_net, optimizer_policy, optimizer_value, optim_val
     """update critic"""
 
     critic_loss_fn = tf.keras.losses.MeanSquaredError()
+    value_loss = None
     for _ in range(optim_value_iternum):
         with tf.GradientTape() as tape:
             values_pred = value_net(states)

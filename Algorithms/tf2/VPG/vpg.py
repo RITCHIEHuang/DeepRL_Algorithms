@@ -49,7 +49,8 @@ class VPG:
 
     def _init_model(self):
         """init model from parameters"""
-        self.env, env_continuous, num_states, num_actions = get_env_info(self.env_id)
+        self.env, env_continuous, num_states, num_actions = get_env_info(
+            self.env_id)
 
         tf.keras.backend.set_floatx('float64')
 
@@ -59,7 +60,7 @@ class VPG:
         self.env.seed(self.seed)
 
         if env_continuous:
-            self.policy_net = Policy(num_states, num_actions) # current policy
+            self.policy_net = Policy(num_states, num_actions)  # current policy
         else:
             self.policy_net = DiscretePolicy(num_states, num_actions)
 
@@ -70,8 +71,10 @@ class VPG:
             print("Loading Saved Model {}_vpg_tf2.p".format(self.env_id))
             self.running_state = pickle.load(
                 open('{}/{}_vpg_tf2.p'.format(self.model_path, self.env_id), "rb"))
-            self.policy_net.load_weights("{}/{}_vpg_tf2_p".format(self.model_path, self.env_id))
-            self.value_net.load_weights("{}/{}_vpg_tf2_v".format(self.model_path, self.env_id))
+            self.policy_net.load_weights(
+                "{}/{}_vpg_tf2_p".format(self.model_path, self.env_id))
+            self.value_net.load_weights(
+                "{}/{}_vpg_tf2_v".format(self.model_path, self.env_id))
 
         self.collector = MemoryCollector(self.env, self.policy_net, render=self.render,
                                          running_state=self.running_state,
@@ -132,7 +135,7 @@ class VPG:
         batch_advantage, batch_return = estimate_advantages(batch_reward, batch_mask, batch_value, self.gamma,
                                                             self.tau)
         log_stats = vpg_step(self.policy_net, self.value_net, self.optimizer_p, self.optimizer_v, self.vpg_epochs,
-                                  batch_state, batch_action, batch_return, batch_advantage)
+                             batch_state, batch_action, batch_return, batch_advantage)
         with writer.as_default():
             tf.summary.scalar("policy loss", log_stats["policy_loss"], i_iter)
             tf.summary.scalar("critic loss", log_stats["critic_loss"], i_iter)
@@ -143,5 +146,7 @@ class VPG:
         check_path(save_path)
         pickle.dump(self.running_state,
                     open('{}/{}_vpg_tf2.p'.format(save_path, self.env_id), 'wb'))
-        self.policy_net.save_weights("{}/{}_vpg_tf2_p".format(save_path, self.env_id))
-        self.value_net.save_weights("{}/{}_vpg_tf2_v".format(save_path, self.env_id))
+        self.policy_net.save_weights(
+            "{}/{}_vpg_tf2_p".format(save_path, self.env_id))
+        self.value_net.save_weights(
+            "{}/{}_vpg_tf2_v".format(save_path, self.env_id))

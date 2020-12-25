@@ -17,7 +17,8 @@ def td3_step(policy_net, policy_net_target, value_net_1, value_net_target_1, val
         target_action = policy_net_target(next_states)
         target_action_noise = torch.clamp(torch.randn_like(target_action) * target_action_noise_std,
                                           -target_action_noise_clip, target_action_noise_clip)
-        target_action = torch.clamp(target_action + target_action_noise, -action_high, action_high)
+        target_action = torch.clamp(
+            target_action + target_action_noise, -action_high, action_high)
         target_values = rewards + gamma * masks * torch.min(value_net_target_1(next_states, target_action),
                                                             value_net_target_2(next_states, target_action))
 
@@ -62,4 +63,7 @@ def td3_step(policy_net, policy_net_target, value_net_1, value_net_target_1, val
         set_flat_params(value_net_target_2,
                         polyak * value_net_2_target_flat_params + (1 - polyak) * value_net_2_flat_params)
 
-    return value_loss_1, value_loss_2, policy_loss
+    return {"q_value_loss_1": value_loss_1,
+            "q_value_loss_2": value_loss_2,
+            "policy_loss": policy_loss
+            }

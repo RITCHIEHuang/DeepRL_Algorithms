@@ -7,7 +7,7 @@ import tensorflow as tf
 import tensorflow.keras.optimizers as optim
 
 from Algorithms.tf2.DQN.dqn_step import dqn_step
-from Common.fixed_size_replay_memory import FixedMemory
+from Common.replay_memory import Memory
 from Algorithms.tf2.Models.QNet_dqn import QNet_dqn
 from Utils.env_util import get_env_info
 from Utils.file_util import check_path
@@ -35,7 +35,7 @@ class DQN:
         self.env_id = env_id
         self.render = render
         self.num_process = num_process
-        self.memory = FixedMemory(size=memory_size)
+        self.memory = Memory(size=memory_size)
         self.explore_size = explore_size
         self.step_per_iter = step_per_iter
         self.lr_q = lr_q
@@ -51,7 +51,8 @@ class DQN:
 
     def _init_model(self):
         """init model from parameters"""
-        self.env, env_continuous, num_states, self.num_actions = get_env_info(self.env_id)
+        self.env, env_continuous, num_states, self.num_actions = get_env_info(
+            self.env_id)
         assert not env_continuous, "DQN is only applicable to discontinuous environment !!!!"
 
         tf.keras.backend.set_floatx('float64')
@@ -72,7 +73,8 @@ class DQN:
             print("Loading Saved Model {}_dqn_tf2".format(self.env_id))
             self.running_state = pickle.load(
                 open('{}/{}_dqn_tf2.p'.format(self.model_path, self.env_id), "rb"))
-            self.value_net.load_weights('{}/{}_dqn_tf2'.format(self.model_path, self.env_id))
+            self.value_net.load_weights(
+                '{}/{}_dqn_tf2'.format(self.model_path, self.env_id))
 
         self.optimizer = optim.Adam(lr=self.lr_q)
 
@@ -137,11 +139,13 @@ class DQN:
                 num_steps += 1
 
                 if global_steps >= self.min_update_step:
-                    batch = self.memory.sample(self.batch_size)  # random sample batch
+                    batch = self.memory.sample(
+                        self.batch_size)  # random sample batch
                     self.update(batch)
 
                 if global_steps % self.update_target_gap == 0:
-                    self.value_net_target.set_weights(self.value_net.get_weights())
+                    self.value_net_target.set_weights(
+                        self.value_net.get_weights())
 
                 if done or num_steps >= self.step_per_iter:
                     break
@@ -170,8 +174,10 @@ class DQN:
         with writer.as_default():
             tf.summary.scalar("total reward", log['total_reward'], step=i_iter)
             tf.summary.scalar("average reward", log['avg_reward'], step=i_iter)
-            tf.summary.scalar("min reward", log['min_episode_reward'], step=i_iter)
-            tf.summary.scalar("max reward", log['max_episode_reward'], step=i_iter)
+            tf.summary.scalar(
+                "min reward", log['min_episode_reward'], step=i_iter)
+            tf.summary.scalar(
+                "max reward", log['max_episode_reward'], step=i_iter)
             tf.summary.scalar("num steps", log['num_steps'], step=i_iter)
 
     def update(self, batch):
@@ -181,12 +187,13 @@ class DQN:
         batch_next_state = NDOUBLE(batch.next_state)
         batch_mask = NDOUBLE(batch.mask)
 
-        dqn_step(self.value_net, self.optimizer, self.value_net_target, batch_state, batch_action,
-                 batch_reward, batch_next_state, batch_mask, self.gamma)
+        alg_step_stats = dqn_step(self.value_net, self.optimizer, self.value_net_target, batch_state, batch_action,
+                                  batch_reward, batch_next_state, batch_mask, self.gamma)
 
     def save(self, save_path):
         """save model"""
         check_path(save_path)
         pickle.dump(self.running_state,
                     open('{}/{}_dqn_tf2.p'.format(save_path, self.env_id), 'wb'))
-        self.value_net.save_weights('{}/{}_dqn_tf2'.format(save_path, self.env_id))
+        self.value_net.save_weights(
+            '{}/{}_dqn_tf2'.format(save_path, self.env_id))

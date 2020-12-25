@@ -9,7 +9,7 @@ import torch.optim as optim
 from Algorithms.pytorch.Models.Policy_ddpg import Policy
 from Algorithms.pytorch.Models.Value_ddpg import Value
 from Algorithms.pytorch.TD3.td3_step import td3_step
-from Common.fixed_size_replay_memory import FixedMemory
+from Common.replay_memory import Memory
 from Utils.env_util import get_env_info
 from Utils.file_util import check_path
 from Utils.torch_util import device, FLOAT
@@ -44,7 +44,7 @@ class TD3:
         self.action_noise = action_noise
         self.target_action_noise_std = target_action_noise_std
         self.target_action_noise_clip = target_action_noise_clip
-        self.memory = FixedMemory(memory_size)
+        self.memory = Memory(memory_size)
         self.explore_size = explore_size
         self.step_per_iter = step_per_iter
         self.render = render
@@ -62,22 +62,28 @@ class TD3:
 
     def _init_model(self):
         """init model from parameters"""
-        self.env, env_continuous, num_states, self.num_actions = get_env_info(self.env_id)
+        self.env, env_continuous, num_states, self.num_actions = get_env_info(
+            self.env_id)
         assert env_continuous, "TD3 is only applicable to continuous environment !!!!"
 
-        self.action_low, self.action_high = self.env.action_space.low[0], self.env.action_space.high[0]
+        self.action_low, self.action_high = self.env.action_space.low[
+            0], self.env.action_space.high[0]
         # seeding
         np.random.seed(self.seed)
         torch.manual_seed(self.seed)
         self.env.seed(self.seed)
 
-        self.policy_net = Policy(num_states, self.num_actions, self.action_high).to(device)
-        self.policy_net_target = Policy(num_states, self.num_actions, self.action_high).to(device)
+        self.policy_net = Policy(
+            num_states, self.num_actions, self.action_high).to(device)
+        self.policy_net_target = Policy(
+            num_states, self.num_actions, self.action_high).to(device)
 
         self.value_net_1 = Value(num_states, self.num_actions).to(device)
-        self.value_net_target_1 = Value(num_states, self.num_actions).to(device)
+        self.value_net_target_1 = Value(
+            num_states, self.num_actions).to(device)
         self.value_net_2 = Value(num_states, self.num_actions).to(device)
-        self.value_net_target_2 = Value(num_states, self.num_actions).to(device)
+        self.value_net_target_2 = Value(
+            num_states, self.num_actions).to(device)
 
         self.running_state = ZFilter((num_states,), clip=5)
 
@@ -90,9 +96,12 @@ class TD3:
         self.value_net_target_1.load_state_dict(self.value_net_1.state_dict())
         self.value_net_target_2.load_state_dict(self.value_net_2.state_dict())
 
-        self.optimizer_p = optim.Adam(self.policy_net.parameters(), lr=self.lr_p)
-        self.optimizer_v_1 = optim.Adam(self.value_net_1.parameters(), lr=self.lr_v)
-        self.optimizer_v_2 = optim.Adam(self.value_net_2.parameters(), lr=self.lr_v)
+        self.optimizer_p = optim.Adam(
+            self.policy_net.parameters(), lr=self.lr_p)
+        self.optimizer_v_1 = optim.Adam(
+            self.value_net_1.parameters(), lr=self.lr_v)
+        self.optimizer_v_2 = optim.Adam(
+            self.value_net_2.parameters(), lr=self.lr_v)
 
     def choose_action(self, state, noise_scale):
         """select action"""
@@ -160,7 +169,8 @@ class TD3:
 
                 if global_steps >= self.min_update_step and global_steps % self.update_step == 0:
                     for k in range(self.update_step):
-                        batch = self.memory.sample(self.batch_size)  # random sample batch
+                        batch = self.memory.sample(
+                            self.batch_size)  # random sample batch
                         self.update(batch, k)
 
                 if done or num_steps >= self.step_per_iter:
@@ -187,13 +197,11 @@ class TD3:
               f"average reward: {log['avg_reward']: .4f}")
 
         # record reward information
-        writer.add_scalars("td3",
-                           {"total reward": log['total_reward'],
-                            "average reward": log['avg_reward'],
-                            "min reward": log['min_episode_reward'],
-                            "max reward": log['max_episode_reward'],
-                            "num steps": log['num_steps']
-                            }, i_iter)
+        writer.add_scalar("total reward", log['total_reward'], i_iter)
+        writer.add_scalar("average reward", log['avg_reward'], i_iter)
+        writer.add_scalar("min reward", log['min_episode_reward'], i_iter)
+        writer.add_scalar("max reward", log['max_episode_reward'], i_iter)
+        writer.add_scalar("num steps", log['num_steps'], i_iter)
 
     def update(self, batch, k_iter):
         """learn model"""
@@ -204,11 +212,11 @@ class TD3:
         batch_mask = FLOAT(batch.mask).to(device)
 
         # update by TD3
-        td3_step(self.policy_net, self.policy_net_target, self.value_net_1, self.value_net_target_1, self.value_net_2,
-                 self.value_net_target_2, self.optimizer_p, self.optimizer_v_1, self.optimizer_v_2, batch_state,
-                 batch_action, batch_reward, batch_next_state, batch_mask, self.gamma, self.polyak,
-                 self.target_action_noise_std, self.target_action_noise_clip, self.action_high,
-                 k_iter % self.policy_update_delay == 0)
+        alg_step_stats = td3_step(self.policy_net, self.policy_net_target, self.value_net_1, self.value_net_target_1, self.value_net_2,
+                                  self.value_net_target_2, self.optimizer_p, self.optimizer_v_1, self.optimizer_v_2, batch_state,
+                                  batch_action, batch_reward, batch_next_state, batch_mask, self.gamma, self.polyak,
+                                  self.target_action_noise_std, self.target_action_noise_clip, self.action_high,
+                                  k_iter % self.policy_update_delay == 0)
 
     def save(self, save_path):
         """save model"""

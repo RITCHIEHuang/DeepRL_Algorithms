@@ -8,7 +8,7 @@ import torch.optim as optim
 
 from Algorithms.pytorch.DQN.dqn_step import dqn_step
 from Algorithms.pytorch.Models.QNet_dqn import QNet_dqn
-from Common.fixed_size_replay_memory import FixedMemory
+from Common.replay_memory import Memory
 from Utils.env_util import get_env_info
 from Utils.file_util import check_path
 from Utils.torch_util import device, FLOAT, LONG
@@ -35,7 +35,7 @@ class DQN:
         self.env_id = env_id
         self.render = render
         self.num_process = num_process
-        self.memory = FixedMemory(size=memory_size)
+        self.memory = Memory(size=memory_size)
         self.explore_size = explore_size
         self.step_per_iter = step_per_iter
         self.lr_q = lr_q
@@ -51,7 +51,8 @@ class DQN:
 
     def _init_model(self):
         """init model from parameters"""
-        self.env, env_continuous, num_states, self.num_actions = get_env_info(self.env_id)
+        self.env, env_continuous, num_states, self.num_actions = get_env_info(
+            self.env_id)
         assert not env_continuous, "DQN is only applicable to discontinuous environment !!!!"
 
         # seeding
@@ -61,7 +62,8 @@ class DQN:
 
         # initialize networks
         self.value_net = QNet_dqn(num_states, self.num_actions).to(device)
-        self.value_net_target = QNet_dqn(num_states, self.num_actions).to(device)
+        self.value_net_target = QNet_dqn(
+            num_states, self.num_actions).to(device)
 
         self.running_state = ZFilter((num_states,), clip=5)
 
@@ -137,11 +139,13 @@ class DQN:
                 num_steps += 1
 
                 if global_steps >= self.min_update_step:
-                    batch = self.memory.sample(self.batch_size)  # random sample batch
+                    batch = self.memory.sample(
+                        self.batch_size)  # random sample batch
                     self.update(batch)
 
                 if global_steps % self.update_target_gap == 0:
-                    self.value_net_target.load_state_dict(self.value_net.state_dict())
+                    self.value_net_target.load_state_dict(
+                        self.value_net.state_dict())
 
                 if done or num_steps >= self.step_per_iter:
                     break
@@ -167,13 +171,11 @@ class DQN:
               f"average reward: {log['avg_reward']: .4f}")
 
         # record reward information
-        writer.add_scalars("dqn",
-                           {"total reward": log['total_reward'],
-                            "average reward": log['avg_reward'],
-                            "min reward": log['min_episode_reward'],
-                            "max reward": log['max_episode_reward'],
-                            "num steps": log['num_steps']
-                            }, i_iter)
+        writer.add_scalar("total reward", log['total_reward'], i_iter)
+        writer.add_scalar("average reward", log['avg_reward'], i_iter)
+        writer.add_scalar("min reward", log['min_episode_reward'], i_iter)
+        writer.add_scalar("max reward", log['max_episode_reward'], i_iter)
+        writer.add_scalar("num steps", log['num_steps'], i_iter)
 
     def update(self, batch):
         batch_state = FLOAT(batch.state).to(device)
@@ -182,8 +184,8 @@ class DQN:
         batch_next_state = FLOAT(batch.next_state).to(device)
         batch_mask = FLOAT(batch.mask).to(device)
 
-        dqn_step(self.value_net, self.optimizer, self.value_net_target, batch_state, batch_action,
-                 batch_reward, batch_next_state, batch_mask, self.gamma)
+        alg_step_stats = dqn_step(self.value_net, self.optimizer, self.value_net_target, batch_state, batch_action,
+                                  batch_reward, batch_next_state, batch_mask, self.gamma)
 
     def save(self, save_path):
         """save model"""

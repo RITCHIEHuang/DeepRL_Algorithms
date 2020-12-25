@@ -16,4 +16,4 @@ def dqn_step(value_net, optimizer_value, value_net_target, states, actions, rewa
 
     value_grads = tape.gradient(value_loss, value_net.trainable_variables)
     optimizer_value.apply_gradients(grads_and_vars=zip(value_grads, value_net.trainable_variables))
-    return value_loss
+    return {"critic_loss": value_loss}

@@ -48,16 +48,19 @@ class VPG:
 
     def _init_model(self):
         """init model from parameters"""
-        self.env, env_continuous, num_states, num_actions = get_env_info(self.env_id)
+        self.env, env_continuous, num_states, num_actions = get_env_info(
+            self.env_id)
 
         # seeding
         torch.manual_seed(self.seed)
         self.env.seed(self.seed)
 
         if env_continuous:
-            self.policy_net = Policy(num_states, num_actions).to(device)  # current policy
+            self.policy_net = Policy(num_states, num_actions).to(
+                device)  # current policy
         else:
-            self.policy_net = DiscretePolicy(num_states, num_actions).to(device)
+            self.policy_net = DiscretePolicy(
+                num_states, num_actions).to(device)
 
         self.value_net = Value(num_states).to(device)
         self.running_state = ZFilter((num_states,), clip=5)
@@ -71,8 +74,10 @@ class VPG:
                                          running_state=self.running_state,
                                          num_process=self.num_process)
 
-        self.optimizer_p = optim.Adam(self.policy_net.parameters(), lr=self.lr_p)
-        self.optimizer_v = optim.Adam(self.value_net.parameters(), lr=self.lr_v)
+        self.optimizer_p = optim.Adam(
+            self.policy_net.parameters(), lr=self.lr_p)
+        self.optimizer_v = optim.Adam(
+            self.value_net.parameters(), lr=self.lr_v)
 
     def choose_action(self, state):
         """select action"""
@@ -109,13 +114,11 @@ class VPG:
               f"average reward: {log['avg_reward']: .4f}, sample time: {log['sample_time']: .4f}")
 
         # record reward information
-        writer.add_scalars("vpg",
-                           {"total reward": log['total_reward'],
-                            "average reward": log['avg_reward'],
-                            "min reward": log['min_episode_reward'],
-                            "max reward": log['max_episode_reward'],
-                            "num steps": log['num_steps']
-                            }, i_iter)
+        writer.add_scalar("total reward", log['total_reward'], i_iter)
+        writer.add_scalar("average reward", log['avg_reward'], i_iter)
+        writer.add_scalar("min reward", log['min_episode_reward'], i_iter)
+        writer.add_scalar("max reward", log['max_episode_reward'], i_iter)
+        writer.add_scalar("num steps", log['num_steps'], i_iter)
 
         batch = memory.sample()  # sample all items in memory
 
@@ -129,11 +132,11 @@ class VPG:
 
         batch_advantage, batch_return = estimate_advantages(batch_reward, batch_mask, batch_value, self.gamma,
                                                             self.tau)
-        v_loss, p_loss = vpg_step(self.policy_net, self.value_net, self.optimizer_p, self.optimizer_v, self.vpg_epochs,
+        alg_step_stats = vpg_step(self.policy_net, self.value_net, self.optimizer_p, self.optimizer_v, self.vpg_epochs,
                                   batch_state,
                                   batch_action, batch_return, batch_advantage,
                                   1e-3)
-        return v_loss, p_loss
+        return alg_step_stats
 
     def save(self, save_path):
         """save model"""

@@ -21,4 +21,4 @@ def a2c_step(ac_net, optimizer_ac, states, actions, returns, advantages, value_l
     nn.utils.clip_grad_norm_(ac_net.parameters(), 20)
     optimizer_ac.step()
 
-    return ac_loss
+    return {"actor_critic_loss": ac_loss}

@@ -17,7 +17,8 @@ def sac_step(policy_net, value_net, value_net_target, q_net_1, q_net_2, optimize
     q_value_1 = q_net_1(states, actions)
     q_value_2 = q_net_2(states, actions)
     with torch.no_grad():
-        target_next_value = rewards + gamma * masks * value_net_target(next_states)
+        target_next_value = rewards + gamma * \
+            masks * value_net_target(next_states)
 
     q_value_loss_1 = nn.MSELoss()(q_value_1, target_next_value)
     optimizer_q_net_1.zero_grad()
@@ -55,4 +56,8 @@ def sac_step(policy_net, value_net, value_net_target, q_net_1, q_net_2, optimize
         set_flat_params(value_net_target,
                         (1 - polyak) * value_net_flat_params + polyak * value_net_target_flat_params)
 
-    return value_loss, q_value_loss_1, q_value_loss_2, policy_loss
+    return {"target_value_loss": value_loss,
+            "q_value_loss_1": q_value_loss_1,
+            "q_value_loss_2": q_value_loss_2,
+            "policy_loss": policy_loss
+            }

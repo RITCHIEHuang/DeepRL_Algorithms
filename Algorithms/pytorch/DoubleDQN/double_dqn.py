@@ -8,7 +8,7 @@ import torch.optim as optim
 
 from Algorithms.pytorch.DoubleDQN.doubledqn_step import doubledqn_step
 from Algorithms.pytorch.Models.QNet_dqn import QNet_dqn
-from Common.fixed_size_replay_memory import FixedMemory
+from Common.replay_memory import Memory
 from Utils.env_util import get_env_info
 from Utils.file_util import check_path
 from Utils.torch_util import device, LONG, FLOAT
@@ -36,7 +36,7 @@ class DoubleDQN:
         self.env_id = env_id
         self.render = render
         self.num_process = num_process
-        self.memory = FixedMemory(size=memory_size)
+        self.memory = Memory(size=memory_size)
         self.explore_size = explore_size
         self.step_per_iter = step_per_iter
         self.lr_q = lr_q
@@ -53,7 +53,8 @@ class DoubleDQN:
 
     def _init_model(self):
         """init model from parameters"""
-        self.env, env_continuous, num_states, self.num_actions = get_env_info(self.env_id)
+        self.env, env_continuous, num_states, self.num_actions = get_env_info(
+            self.env_id)
         assert not env_continuous, "DoubleQN is only applicable to discontinuous environment !!!!"
 
         # seeding
@@ -63,7 +64,8 @@ class DoubleDQN:
 
         # initialize networks
         self.value_net = QNet_dqn(num_states, self.num_actions).to(device)
-        self.value_net_target = QNet_dqn(num_states, self.num_actions).to(device)
+        self.value_net_target = QNet_dqn(
+            num_states, self.num_actions).to(device)
 
         self.running_state = ZFilter((num_states,), clip=5)
 
@@ -139,7 +141,8 @@ class DoubleDQN:
                 num_steps += 1
 
                 if global_steps >= self.min_update_step:
-                    batch = self.memory.sample(self.batch_size)  # random sample batch
+                    batch = self.memory.sample(
+                        self.batch_size)  # random sample batch
                     self.update(batch, global_steps)
 
                 if done or num_steps >= self.step_per_iter:
@@ -166,13 +169,11 @@ class DoubleDQN:
               f"average reward: {log['avg_reward']: .4f}")
 
         # record reward information
-        writer.add_scalars("double dqn",
-                           {"total reward": log['total_reward'],
-                            "average reward": log['avg_reward'],
-                            "min reward": log['min_episode_reward'],
-                            "max reward": log['max_episode_reward'],
-                            "num steps": log['num_steps']
-                            }, i_iter)
+        writer.add_scalar("total reward", log['total_reward'], i_iter)
+        writer.add_scalar("average reward", log['avg_reward'], i_iter)
+        writer.add_scalar("min reward", log['min_episode_reward'], i_iter)
+        writer.add_scalar("max reward", log['max_episode_reward'], i_iter)
+        writer.add_scalar("num steps", log['num_steps'], i_iter)
 
     def update(self, batch, global_steps):
         batch_state = FLOAT(batch.state).to(device)
@@ -181,9 +182,9 @@ class DoubleDQN:
         batch_next_state = FLOAT(batch.next_state).to(device)
         batch_mask = FLOAT(batch.mask).to(device)
 
-        doubledqn_step(self.value_net, self.optimizer, self.value_net_target, batch_state, batch_action,
-                       batch_reward, batch_next_state, batch_mask, self.gamma, self.polyak,
-                       global_steps % self.update_target_gap == 0)
+        alg_step_stats = doubledqn_step(self.value_net, self.optimizer, self.value_net_target, batch_state, batch_action,
+                                        batch_reward, batch_next_state, batch_mask, self.gamma, self.polyak,
+                                        global_steps % self.update_target_gap == 0)
 
     def save(self, save_path):
         """save model"""

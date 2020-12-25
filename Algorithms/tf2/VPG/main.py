@@ -14,7 +14,7 @@ from Algorithms.tf2.VPG.vpg import VPG
 @click.option("--lr_v", type=float, default=1e-3, help="Learning rate for Value Net")
 @click.option("--gamma", type=float, default=0.99, help="Discount factor")
 @click.option("--tau", type=float, default=0.95, help="GAE factor")
-@click.option("--batch_size", type=int, default=4000, help="Batch size")
+@click.option("--batch_size", type=int, default=1000, help="Batch size")
 @click.option("--vpg_epochs", type=int, default=10, help="Vanilla PG step")
 @click.option("--max_iter", type=int, default=1000, help="Maximum iterations to run")
 @click.option("--eval_iter", type=int, default=50, help="Iterations to evaluate the model")
@@ -38,6 +38,7 @@ def main(env_id, render, num_process, lr_p, lr_v, gamma, tau, batch_size,
 
         if i_iter % save_iter == 0:
             vpg.save(model_path)
+
 
 if __name__ == '__main__':
     main()

@@ -11,7 +11,7 @@ from Algorithms.pytorch.PPO.ppo import PPO
 
 
 @click.command()
-@click.option("--env_id", type=str, default="BipealWalker-v3", help="Environment Id")
+@click.option("--env_id", type=str, default="BipedalWalker-v3", help="Environment Id")
 @click.option("--render", type=bool, default=False, help="Render environment or not")
 @click.option("--num_process", type=int, default=1, help="Number of process to run environment")
 @click.option("--lr_p", type=float, default=3e-4, help="Learning rate for Policy Net")

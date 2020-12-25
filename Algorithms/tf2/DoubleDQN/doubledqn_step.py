@@ -25,4 +25,4 @@ def doubledqn_step(value_net, optimizer_value, value_net_target, states, actions
         """update target q value net"""
         value_net_target.set_weights(value_net.get_weights())
 
-    return value_loss
+    return {"critic_loss": value_loss}

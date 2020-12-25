@@ -12,7 +12,8 @@ def dqn_step(value_net, optimizer_value, value_net_target, states, actions, rewa
     q_values = value_net(states).gather(1, actions)
     with torch.no_grad():
         q_target_next_values = value_net_target(next_states)
-        q_target_values = rewards + gamma * masks * q_target_next_values.max(1)[0].view(q_values.size(0), 1)
+        q_target_values = rewards + gamma * masks * \
+            q_target_next_values.max(1)[0].view(q_values.size(0), 1)
 
     value_loss = nn.MSELoss()(q_target_values, q_values)
 
@@ -20,4 +21,4 @@ def dqn_step(value_net, optimizer_value, value_net_target, states, actions, rewa
     value_loss.backward()
     optimizer_value.step()
 
-    return value_loss
+    return {"critic_loss": value_loss}

@@ -59,7 +59,6 @@ def sac_alpha_step(policy_net, q_net_1, q_net_2, alpha, q_net_target_1, q_net_ta
         q_net_1_flat_params = get_flat_params(q_net_1)
         q_net_target_1_flat_params = get_flat_params(q_net_target_1)
 
-
         set_flat_params(q_net_target_1,
                         (1 - polyak) * q_net_1_flat_params + polyak * q_net_target_1_flat_params)
 
@@ -69,4 +68,8 @@ def sac_alpha_step(policy_net, q_net_1, q_net_2, alpha, q_net_target_1, q_net_ta
         set_flat_params(q_net_target_2,
                         (1 - polyak) * q_net_2_flat_params + polyak * q_net_target_2_flat_params)
 
-    return q_value_loss_1, q_value_loss_2, policy_loss, alpha_loss
+    return {"q_value_loss_1": q_value_loss_1,
+            "q_value_loss_2": q_value_loss_2,
+            "policy_loss": policy_loss,
+            "alpha_loss": alpha_loss
+            }

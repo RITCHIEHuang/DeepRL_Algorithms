@@ -48,7 +48,8 @@ class A2C():
 
     def _init_model(self):
         """init model from parameters"""
-        self.env, env_continuous, num_states, num_actions = get_env_info(self.env_id)
+        self.env, env_continuous, num_states, num_actions = get_env_info(
+            self.env_id)
 
         # seeding
         torch.manual_seed(self.seed)
@@ -57,7 +58,8 @@ class A2C():
         if env_continuous:
             self.policy_net = Policy(num_states, num_actions).to(device)
         else:
-            self.policy_net = DiscretePolicy(num_states, num_actions).to(device)
+            self.policy_net = DiscretePolicy(
+                num_states, num_actions).to(device)
 
         self.value_net = Value(num_states).to(device)
 
@@ -111,13 +113,11 @@ class A2C():
               f"average reward: {log['avg_reward']: .4f}, sample time: {log['sample_time']: .4f}")
 
         # record reward information
-        writer.add_scalars("a2c",
-                           {"total reward": log['total_reward'],
-                            "average reward": log['avg_reward'],
-                            "min reward": log['min_episode_reward'],
-                            "max reward": log['max_episode_reward'],
-                            "num steps": log['num_steps']
-                            }, i_iter)
+        writer.add_scalar("total reward", log['total_reward'], i_iter)
+        writer.add_scalar("average reward", log['avg_reward'], i_iter)
+        writer.add_scalar("min reward", log['min_episode_reward'], i_iter)
+        writer.add_scalar("max reward", log['max_episode_reward'], i_iter)
+        writer.add_scalar("num steps", log['num_steps'], i_iter)
 
         batch = memory.sample()  # sample all items in memory
 
@@ -132,10 +132,10 @@ class A2C():
         batch_advantage, batch_return = estimate_advantages(batch_reward, batch_mask, batch_value, self.gamma,
                                                             self.tau)
 
-        ac_loss = a2c_step(self.ac_net, self.optimizer_ac, batch_state, batch_action, batch_return,
-                           batch_advantage, self.value_net_coeff, self.entropy_coeff)
+        alg_step_stats = a2c_step(self.ac_net, self.optimizer_ac, batch_state, batch_action, batch_return,
+                                  batch_advantage, self.value_net_coeff, self.entropy_coeff)
 
-        return ac_loss
+        return alg_step_stats
 
     def save(self, save_path):
         """save model"""

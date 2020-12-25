@@ -14,7 +14,8 @@ def reinforce_step(policy_net, optimizer_policy, states, actions, rewards, masks
         cum_rewards[i, 0] = pre_value
 
     # normalize cumulative rewards
-    cum_rewards = (cum_rewards - cum_rewards.mean()) / (cum_rewards.std() + eps)
+    cum_rewards = (cum_rewards - cum_rewards.mean()) / \
+        (cum_rewards.std() + eps)
 
     """update policy"""
     log_probs = policy_net.get_log_prob(states, actions)
@@ -25,4 +26,4 @@ def reinforce_step(policy_net, optimizer_policy, states, actions, rewards, masks
     torch.nn.utils.clip_grad_norm_(policy_net.parameters(), 40)
     optimizer_policy.step()
 
-    return policy_loss
+    return {"policy_loss": policy_loss}

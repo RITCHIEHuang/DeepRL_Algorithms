@@ -57,17 +57,21 @@ class DDPG:
 
     def _init_model(self):
         """init model from parameters"""
-        self.env, env_continuous, num_states, self.num_actions = get_env_info(self.env_id)
+        self.env, env_continuous, num_states, self.num_actions = get_env_info(
+            self.env_id)
         assert env_continuous, "DDPG is only applicable to continuous environment !!!!"
 
-        self.action_low, self.action_high = self.env.action_space.low[0], self.env.action_space.high[0]
+        self.action_low, self.action_high = self.env.action_space.low[
+            0], self.env.action_space.high[0]
         # seeding
         np.random.seed(self.seed)
         torch.manual_seed(self.seed)
         self.env.seed(self.seed)
 
-        self.policy_net = Policy(num_states, self.num_actions, self.action_high).to(device)
-        self.policy_net_target = Policy(num_states, self.num_actions, self.action_high).to(device)
+        self.policy_net = Policy(
+            num_states, self.num_actions, self.action_high).to(device)
+        self.policy_net_target = Policy(
+            num_states, self.num_actions, self.action_high).to(device)
 
         self.value_net = Value(num_states, self.num_actions).to(device)
         self.value_net_target = Value(num_states, self.num_actions).to(device)
@@ -82,8 +86,10 @@ class DDPG:
         self.policy_net_target.load_state_dict(self.policy_net.state_dict())
         self.value_net_target.load_state_dict(self.value_net.state_dict())
 
-        self.optimizer_p = optim.Adam(self.policy_net.parameters(), lr=self.lr_p)
-        self.optimizer_v = optim.Adam(self.value_net.parameters(), lr=self.lr_v)
+        self.optimizer_p = optim.Adam(
+            self.policy_net.parameters(), lr=self.lr_p)
+        self.optimizer_v = optim.Adam(
+            self.value_net.parameters(), lr=self.lr_v)
 
     def choose_action(self, state, noise_scale):
         """select action"""
@@ -151,7 +157,8 @@ class DDPG:
 
                 if global_steps >= self.min_update_step and global_steps % self.update_step == 0:
                     for _ in range(self.update_step):
-                        batch = self.memory.sample(self.batch_size)  # random sample batch
+                        batch = self.memory.sample(
+                            self.batch_size)  # random sample batch
                         self.update(batch)
 
                 if done or num_steps >= self.step_per_iter:
@@ -178,13 +185,11 @@ class DDPG:
               f"average reward: {log['avg_reward']: .4f}")
 
         # record reward information
-        writer.add_scalars("ddpg",
-                           {"total reward": log['total_reward'],
-                            "average reward": log['avg_reward'],
-                            "min reward": log['min_episode_reward'],
-                            "max reward": log['max_episode_reward'],
-                            "num steps": log['num_steps']
-                            }, i_iter)
+        writer.add_scalar("total reward", log['total_reward'], i_iter)
+        writer.add_scalar("average reward", log['avg_reward'], i_iter)
+        writer.add_scalar("min reward", log['min_episode_reward'], i_iter)
+        writer.add_scalar("max reward", log['max_episode_reward'], i_iter)
+        writer.add_scalar("num steps", log['num_steps'], i_iter)
 
     def update(self, batch):
         """learn model"""
@@ -195,9 +200,9 @@ class DDPG:
         batch_mask = FLOAT(batch.mask).to(device)
 
         # update by DDPG
-        ddpg_step(self.policy_net, self.policy_net_target, self.value_net, self.value_net_target, self.optimizer_p,
-                  self.optimizer_v, batch_state, batch_action, batch_reward, batch_next_state, batch_mask,
-                  self.gamma, self.polyak)
+        alg_step_stats = ddpg_step(self.policy_net, self.policy_net_target, self.value_net, self.value_net_target, self.optimizer_p,
+                                   self.optimizer_v, batch_state, batch_action, batch_reward, batch_next_state, batch_mask,
+                                   self.gamma, self.polyak)
 
     def save(self, save_path):
         """save model"""

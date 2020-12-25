@@ -34,6 +34,9 @@ def trpo_step(policy_net, value_net, states, actions,
         return objective_value_loss
 
     def value_objective_grad_func(value_net_flat_params):
+        """
+        objective function for scipy optimizing 
+        """
         set_flat_params(value_net, FLOAT(value_net_flat_params))
         for param in value_net.parameters():
             if param.grad is not None:
@@ -45,10 +48,10 @@ def trpo_step(policy_net, value_net, states, actions,
             value_loss += param.pow(2).sum() * l2_reg
 
         value_loss.backward()  # to get the grad
-        objective_value_loss_grad = get_flat_grad_params(value_net).detach().cpu().numpy().astype(np.float64)
+        objective_value_loss_grad = get_flat_grad_params(
+            value_net).detach().cpu().numpy().astype(np.float64)
         return objective_value_loss_grad
 
-    # update by NN method
     if optimizer_value is None:
         """ 
         update by scipy optimizing, for detail about L-BFGS-B: ref: 
@@ -63,6 +66,9 @@ def trpo_step(policy_net, value_net, states, actions,
         set_flat_params(value_net, FLOAT(value_net_flat_params_new))
 
     else:
+        """
+        update by gradient descent
+        """
         for _ in range(10):
             values_pred = value_net(states)
             value_loss = nn.MSELoss()(values_pred, returns)
@@ -74,7 +80,8 @@ def trpo_step(policy_net, value_net, states, actions,
             optimizer_value.step()
 
     """update policy"""
-    update_policy(policy_net, states, actions, old_log_probs, advantages, max_kl, damping)
+    update_policy(policy_net, states, actions,
+                  old_log_probs, advantages, max_kl, damping)
 
 
 def conjugate_gradient(Hvp_f, b, steps=10, rdotr_tol=1e-10):
@@ -153,25 +160,30 @@ def update_policy(policy_net: nn.Module, states, actions, old_log_probs, advanta
         kl = kl.mean()
 
         # first order gradient kl
-        grads = torch.autograd.grad(kl, policy_net.parameters(), create_graph=True)
+        grads = torch.autograd.grad(
+            kl, policy_net.parameters(), create_graph=True)
         flat_grad_kl = torch.cat([grad.view(-1) for grad in grads])
 
         kl_v = (flat_grad_kl * v).sum()  # flag_grad_kl.T @ v
         # second order gradient of kl
         grads = torch.autograd.grad(kl_v, policy_net.parameters())
-        flat_grad_grad_kl = torch.cat([grad.contiguous().view(-1) for grad in grads]).detach()
+        flat_grad_grad_kl = torch.cat(
+            [grad.contiguous().view(-1) for grad in grads]).detach()
 
         return flat_grad_grad_kl + v * damping
 
     # compute first order approximation to Loss
     loss = get_loss()
     loss_grads = autograd.grad(loss, policy_net.parameters())
-    loss_grad = torch.cat([grad.view(-1) for grad in loss_grads]).detach()  # g.T
+    loss_grad = torch.cat([grad.view(-1)
+                           for grad in loss_grads]).detach()  # g.T
 
-    # conjugate gradient solve : H * x = g
-    # apply vector product strategy here: Hx = H * x
-    step_dir = conjugate_gradient(Hvp, loss_grad)  # approximation solution of H^(-1)g
-    shs = Hvp(step_dir).t() @ step_dir  # g.T H^(-1) g; another implementation: Hvp(step_dir) @ step_dir
+    # conjugate gradient solve : Hx = g
+    # apply vector product strategy here to compute Hx by `Hvp`
+    # approximation solution of x'= H^(-1)g
+    step_dir = conjugate_gradient(Hvp, loss_grad)
+    # g.T H^(-1) g; another implementation: Hvp(step_dir) @ step_dir
+    shs = Hvp(step_dir).t() @ step_dir
     lm = torch.sqrt(2 * max_kl / shs)
     step = lm * step_dir  # update direction for policy nets
     expected_improve = loss_grad.t() @ step

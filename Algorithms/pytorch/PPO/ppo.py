@@ -117,13 +117,11 @@ class PPO:
               f"average reward: {log['avg_reward']: .4f}, sample time: {log['sample_time']: .4f}")
 
         # record reward information
-        writer.add_scalars("ppo",
-                           {"total reward": log['total_reward'],
-                            "average reward": log['avg_reward'],
-                            "min reward": log['min_episode_reward'],
-                            "max reward": log['max_episode_reward'],
-                            "num steps": log['num_steps']
-                            }, i_iter)
+        writer.add_scalar("total reward", log['total_reward'], i_iter)
+        writer.add_scalar("average reward", log['avg_reward'], i_iter)
+        writer.add_scalar("min reward", log['min_episode_reward'], i_iter)
+        writer.add_scalar("max reward", log['max_episode_reward'], i_iter)
+        writer.add_scalar("num steps", log['num_steps'], i_iter)
 
         batch = memory.sample()  # sample all items in memory
         #  ('state', 'action', 'reward', 'next_state', 'mask', 'log_prob')
@@ -138,8 +136,8 @@ class PPO:
 
         batch_advantage, batch_return = estimate_advantages(batch_reward, batch_mask, batch_value, self.gamma,
                                                             self.tau)
-        v_loss, p_loss = torch.empty(1), torch.empty(1)
 
+        alg_step_stats = {}
         if self.ppo_mini_batch_size:
             batch_size = batch_state.shape[0]
             mini_batch_num = int(
@@ -158,19 +156,19 @@ class PPO:
                         batch_log_prob[
                         ind]
 
-                    v_loss, p_loss = ppo_step(self.policy_net, self.value_net, self.optimizer_p, self.optimizer_v,
+                    alg_step_stats = ppo_step(self.policy_net, self.value_net, self.optimizer_p, self.optimizer_v,
                                               1,
                                               state,
                                               action, returns, advantages, old_log_pis, self.clip_epsilon,
                                               1e-3)
         else:
             for _ in range(self.ppo_epochs):
-                v_loss, p_loss = ppo_step(self.policy_net, self.value_net, self.optimizer_p, self.optimizer_v, 1,
+                alg_step_stats = ppo_step(self.policy_net, self.value_net, self.optimizer_p, self.optimizer_v, 1,
                                           batch_state, batch_action, batch_return, batch_advantage, batch_log_prob,
                                           self.clip_epsilon,
                                           1e-3)
 
-        return v_loss, p_loss
+        return alg_step_stats
 
     def save(self, save_path):
         """save model"""
