@@ -92,22 +92,22 @@ All the plots in this project are drawn by this plot util.
 
 ### 5.1 Benchmarks for DQNs
 
-#### **Pytorch Versions**
+#### **Pytorch Version**
 
 ![bench_dqn](Algorithms/images/bench_dqn.png)
 
-#### **Tensorflow2 Versions**
+#### **Tensorflow2 Version**
 
 ![bench_dqn_tf2](Algorithms/images/bench_dqn_tf2.png)
 
  
 ### 5.2 Benchmarks for PolicyGradients
 
-#### **Pytorch Versions**
+#### **Pytorch Version**
 
 ![bench_pg](Algorithms/images/bench_pg.png)
 
-#### **Tensorflow2 Versions**
+#### **Tensorflow2 Version**
 
 Currently only PPO Available:
 
