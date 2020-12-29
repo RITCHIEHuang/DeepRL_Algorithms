@@ -96,9 +96,9 @@ All the plots in this project are drawn by this plot util.
 
 ![bench_dqn](Algorithms/images/bench_dqn.png)
 
-#### **Tensorflow Versions**
+#### **Tensorflow2 Versions**
 
-![bench_dqn_tf](Algorithms/images/bench_dqn_tf2.png)
+![bench_dqn_tf2](Algorithms/images/bench_dqn_tf2.png)
 
  
 ### 5.2 Benchmarks for PolicyGradients
@@ -107,3 +107,8 @@ All the plots in this project are drawn by this plot util.
 
 ![bench_pg](Algorithms/images/bench_pg.png)
 
+#### **Tensorflow2 Versions**
+
+Currently only PPO Available:
+
+![bench_ppo_tf2](Algorithms/images/bench_ppo_tf2.png)

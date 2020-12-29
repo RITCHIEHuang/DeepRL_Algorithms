@@ -77,7 +77,7 @@ def load_event_scalars(log_path):
             tags = event_acc.Tags()["tensors"]
             env_list = event_acc.tensors.Items
             use_tensorflow = True
-        for tag in tags:
+        for tag in set(tags) & {"total reward", "average reward", "min reward", "max reward", "num steps"}:
             event_list = env_list(tag)
             if use_tensorflow:
                 values = list(
@@ -164,6 +164,7 @@ def plot_all_logs(log_dir=None, x_axis=None, y_axis=None, hue=None, smooth=1, en
                       smooth=smooth, title=env_id, hue=hue, ax=ax)
             k += 1
     plt.show()
+    plt.savefig("tf-ppo.png")
 
 
 def make_plot(data, x_axis=None, y_axis=None, title=None, hue=None, smooth=1, estimator='mean', ax=None):
@@ -180,7 +181,7 @@ def make_plot(data, x_axis=None, y_axis=None, title=None, hue=None, smooth=1, es
 # @click.option("--x_axis", type=str, default="num episodes", help="X axis data")
 # @click.option("--y_axis", type=list, default=["average reward"], help="Y axis data(can be multiple)")
 # @click.option("--hue", type=str, default="algorithm", help="Hue for legend")
-def main(log_dir='../Algorithms/pytorch/log/', x_axis='num episodes', y_axis=['average reward'], hue='algorithm',
+def main(log_dir='../../log/', x_axis='num episodes', y_axis=['average reward'], hue='algorithm',
          env_filter_func=None, alg_filter_func=None):
     """plot performance of all environments and algorithms 
 
@@ -209,6 +210,9 @@ if __name__ == "__main__":
     def env_filter_func_pg(x): return x.split(os.sep)[-1] in ["HalfCheetah-v3", "Hopper-v3", "Walker2d-v3", "Swimmer-v3",
                                                               "Ant-v3", "BipedalWalker-v3"]
 
+    def alg_filter_func_ppo(x): return x.split(os.sep)[-1].rsplit("_")[0] in ["PPO"]
+
     def alg_filter_func(x): return x.split(os.sep)[-1].rsplit("_")[0] in []
-    main(env_filter_func=env_filter_func_pg, alg_filter_func=None)
+
+    main(env_filter_func=None, alg_filter_func=alg_filter_func_ppo)
     sns.despine()

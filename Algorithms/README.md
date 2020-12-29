@@ -123,7 +123,11 @@ PPO 是 TRPO 的变种，其优化目标是 Surrogate Loss:
 
 PPO 在 Mujoco 环境上的表现:
 
+**Pytorch 版本**
 ![benchmarks for ppo](images/bench_ppo.png)
+
+**Tensorflow2 版本**
+![benchmarks for ppo-tf2](images/bench_ppo_tf2.png)
 
 实现了基于 [mini_batch](PPO/ppo_mini_batch.py) 和 [target policy](PPO/ppo.py) 两个版本，两个版本的区别在于是否使用 `mini batch` 
 进行更新。两者在性能上还是有一定的差异的，从两者在 `BipedalWalker-v2` 上的表现来看，`target policy` 版本更稳定，在数据量较大时，将倾向于使用

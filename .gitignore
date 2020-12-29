@@ -134,3 +134,4 @@ log/
 *data/
 .history/
 .vscode/
+!.vscode/launch.json
