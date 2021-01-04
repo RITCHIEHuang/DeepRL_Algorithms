@@ -93,7 +93,12 @@ PG算法主要有两大类:
 
 VPG 在 [Mujoco](https://gym.openai.com/envs/#mujoco) 环境上的表现:
 
+**Pytorch 版本**
 ![benchmarks for vpg](images/bench_vpg.png)
+
+**Tensorflow2 版本**
+![benchmarks for vpg-tf2](images/bench_vpg_tf2.png)
+
 
 #### 3.[PPO (Proximal Policy Optimization)][7]
 
