@@ -164,7 +164,7 @@ def plot_all_logs(log_dir=None, x_axis=None, y_axis=None, hue=None, smooth=1, en
                       smooth=smooth, title=env_id, hue=hue, ax=ax)
             k += 1
     plt.show()
-    plt.savefig("tf-ppo.png")
+    plt.savefig("../Algorithms/images/bench_pg_tf2.png")
 
 
 def make_plot(data, x_axis=None, y_axis=None, title=None, hue=None, smooth=1, estimator='mean', ax=None):
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     def env_filter_func_pg(x): return x.split(os.sep)[-1] in ["HalfCheetah-v3", "Hopper-v3", "Walker2d-v3", "Swimmer-v3",
                                                               "Ant-v3", "BipedalWalker-v3"]
 
-    def alg_filter_func_ppo(x): return x.split(os.sep)[-1].rsplit("_")[0] in ["PPO"]
+    def alg_filter_func_ppo(x): return x.split(os.sep)[-1].rsplit("_")[0] in ["PPO", "VPG"]
 
     def alg_filter_func(x): return x.split(os.sep)[-1].rsplit("_")[0] in []
 
