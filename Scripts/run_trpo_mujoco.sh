@@ -10,7 +10,7 @@ for (( j = 1; j <= seeds; ++j )); do
         echo ============================================
         echo starting Env: ${envs[$i]} ----- Exp_id $j
 
-        python -m Algorithms.pytorch.${alg}.main --env_id ${envs[$i]} --max_iter ${max_iter} --model_path Algorithms/pytorch/${alg}/trained_models --seed $j --num_process 4
+        python -m Algorithms.pytorch.${alg}.main --env_id ${envs[$i]} --max_iter ${max_iter} --model_path Algorithms/pytorch/${alg}/trained_models --seed $j --num_process 4 --batch_size 4000
 
         echo finishing Env: ${envs[$i]} ----- Exp_id $j
         echo ============================================
