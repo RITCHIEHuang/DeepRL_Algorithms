@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 # Created at 2020/1/19 下午2:47
 import math
-import multiprocessing
+from torch.multiprocessing import Process, Queue
 import time
-
 import torch
 
 from Common.replay_memory import Memory
@@ -12,7 +11,13 @@ from Utils.torch_util import device, FLOAT
 
 
 def collect_samples(pid, queue, env, policy, render, running_state, custom_reward, min_batch_size):
-    torch.randn(pid)
+    torch.set_num_threads(1)
+    if pid > 0:
+        torch.manual_seed(torch.randint(0, 5000, (1,)) * pid)
+        if hasattr(env, 'np_random'):
+            env.np_random.seed(env.np_random.randint(5000) * pid)
+        if hasattr(env, 'env') and hasattr(env.env, 'np_random'):
+            env.env.np_random.seed(env.env.np_random.randint(5000) * pid)
     log = dict()
     memory = Memory()
     num_steps = 0
@@ -78,8 +83,10 @@ def merge_log(log_list):
     log['num_episodes'] = sum([x['num_episodes'] for x in log_list])
     log['num_steps'] = sum([x['num_steps'] for x in log_list])
     log['avg_reward'] = log['total_reward'] / log['num_episodes']
-    log['max_episode_reward'] = max([x['max_episode_reward'] for x in log_list])
-    log['min_episode_reward'] = min([x['min_episode_reward'] for x in log_list])
+    log['max_episode_reward'] = max(
+        [x['max_episode_reward'] for x in log_list])
+    log['min_episode_reward'] = min(
+        [x['min_episode_reward'] for x in log_list])
 
     return log
 
@@ -94,18 +101,19 @@ class MemoryCollector:
         self.num_process = num_process
 
     def collect_samples(self, min_batch_size):
-        self.policy.eval()
+        torch.set_num_threads(1)
         self.policy.to(torch.device('cpu'))
         t_start = time.time()
         process_batch_size = int(math.floor(min_batch_size / self.num_process))
-        queue = multiprocessing.Queue()
+        queue = Queue()
         workers = []
 
-        # don't render other parallel processes
         for i in range(self.num_process - 1):
+            # don't render other parallel processes
             worker_args = (i + 1, queue, self.env, self.policy,
                            False, self.running_state, self.custom_reward, process_batch_size)
-            workers.append(multiprocessing.Process(target=collect_samples, args=worker_args))
+            p = Process(target=collect_samples, args=worker_args)
+            workers.append(p)
 
         for worker in workers:
             worker.start()
@@ -116,9 +124,11 @@ class MemoryCollector:
         worker_logs = [None] * len(workers)
         worker_memories = [None] * len(workers)
         for _ in workers:
-            pid, worker_memory, worker_log = queue.get()
+            pid, worker_memory, worker_log = queue.get(timeout=0.5)
             worker_memories[pid - 1] = worker_memory
             worker_logs[pid - 1] = worker_log
+
+        [worker.join() for worker in workers]
 
         # concat all memories
         for worker_memory in worker_memories:
