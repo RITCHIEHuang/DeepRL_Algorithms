@@ -83,7 +83,9 @@ class A2C():
         state = FLOAT(state).unsqueeze(0).to(device)
         with torch.no_grad():
             action, log_prob = self.ac_net.get_action_log_prob(state)
-        return action, log_prob
+
+        action = action.cpu().numpy()[0]
+        return action
 
     def eval(self, i_iter, render=False):
         """init model from parameters"""
@@ -94,8 +96,7 @@ class A2C():
                 self.env.render()
             state = self.running_state(state)
 
-            action, _ = self.choose_action(state)
-            action = action.cpu().numpy()[0]
+            action = self.choose_action(state)
             state, reward, done, _ = self.env.step(action)
 
             test_reward += reward

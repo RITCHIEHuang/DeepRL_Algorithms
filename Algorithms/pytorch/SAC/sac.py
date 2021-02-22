@@ -103,7 +103,7 @@ class SAC:
         with torch.no_grad():
             action, _ = self.policy_net.rsample(state)
         action = action.cpu().numpy()[0]
-        return action, None
+        return action
 
     def eval(self, i_iter, render=False):
         """evaluate model"""
@@ -113,7 +113,7 @@ class SAC:
             if render:
                 self.env.render()
             state = self.running_state(state)
-            action, _ = self.choose_action(state)
+            action = self.choose_action(state)
             state, reward, done, _ = self.env.step(action)
 
             test_reward += reward
@@ -145,7 +145,7 @@ class SAC:
                 if global_steps < self.explore_size:  # explore
                     action = self.env.action_space.sample()
                 else:  # action
-                    action, _ = self.choose_action(state)
+                    action = self.choose_action(state)
 
                 next_state, reward, done, _ = self.env.step(action)
                 next_state = self.running_state(next_state)
