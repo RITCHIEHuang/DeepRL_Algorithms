@@ -91,7 +91,9 @@ class PPO:
         """select action"""
         state = np.expand_dims(NDOUBLE(state), 0)
         action, log_prob = self.policy_net.get_action_log_prob(state)
-        return action, log_prob
+
+        action = action.numpy()[0]
+        return action
 
     def eval(self, i_iter, render=False):
         """init model from parameters"""
@@ -102,8 +104,7 @@ class PPO:
                 self.env.render()
             state = self.running_state(state)
 
-            action, _ = self.choose_action(state)
-            action = action.numpy()[0]
+            action = self.choose_action(state)
             state, reward, done, _ = self.env.step(action)
 
             test_reward += reward

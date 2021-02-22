@@ -94,7 +94,7 @@ class DQN:
         while True:
             if render:
                 self.env.render()
-            state = self.running_state(state)
+            # state = self.running_state(state)
             action = self.choose_action(state)
             state, reward, done, _ = self.env.step(action)
 
@@ -116,7 +116,7 @@ class DQN:
 
         while num_steps < self.step_per_iter:
             state = self.env.reset()
-            state = self.running_state(state)
+            # state = self.running_state(state)
             episode_reward = 0
 
             for t in range(10000):
@@ -129,7 +129,7 @@ class DQN:
                     action = self.choose_action(state)
 
                 next_state, reward, done, _ = self.env.step(action)
-                next_state = self.running_state(next_state)
+                # next_state = self.running_state(next_state)
                 mask = 0 if done else 1
                 # ('state', 'action', 'reward', 'next_state', 'mask', 'log_prob')
                 self.memory.push(state, action, reward, next_state, mask, None)

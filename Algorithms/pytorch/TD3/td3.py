@@ -113,7 +113,7 @@ class TD3:
         noise = noise_scale * np.random.randn(self.num_actions)
         action += noise
         action = np.clip(action, -self.action_high, self.action_high)
-        return action, log_prob
+        return action 
 
     def eval(self, i_iter, render=False):
         """evaluate model"""
@@ -123,7 +123,7 @@ class TD3:
             if render:
                 self.env.render()
             # state = self.running_state(state)
-            action, _ = self.choose_action(state, 0)
+            action = self.choose_action(state, 0)
             state, reward, done, _ = self.env.step(action)
 
             test_reward += reward
@@ -155,7 +155,7 @@ class TD3:
                 if global_steps < self.explore_size:  # explore
                     action = self.env.action_space.sample()
                 else:  # action with noise
-                    action, _ = self.choose_action(state, self.action_noise)
+                    action = self.choose_action(state, self.action_noise)
 
                 next_state, reward, done, _ = self.env.step(action)
                 # next_state = self.running_state(next_state)

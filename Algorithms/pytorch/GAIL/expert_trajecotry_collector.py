@@ -7,6 +7,7 @@ import numpy as np
 import torch
 
 from Utils.env_util import get_env_info
+from Utils.file_util import check_path
 
 
 @click.command()
@@ -28,6 +29,9 @@ def main(env_id, n_trajs, model_path, data_path, render, seed, obs_type):
     """
     Collect trajectories from pre-trained models by PPO
     """
+    if data_path is not None:
+        check_path(data_path)
+
     env, _, num_states, num_actions = get_env_info(env_id)
 
     # seed
@@ -60,8 +64,9 @@ def main(env_id, n_trajs, model_path, data_path, render, seed, obs_type):
             ep_actions.append(action)
             ep_rewards.append(reward)
             ep_dones.append(done)
-            ep_next_states.append(next_state if obs_type ==
-                                                0 else normalized_next_state)
+            ep_next_states.append(next_state if obs_type == 0
+                                  else
+                                  normalized_next_state)
 
             if done:
                 states.extend(ep_states)
@@ -69,7 +74,6 @@ def main(env_id, n_trajs, model_path, data_path, render, seed, obs_type):
                 rewards.extend(ep_rewards)
                 dones.extend(ep_dones)
                 next_states.extend(ep_next_states)
-                print('Add success trajs !!!')
                 print(
                     f"Iter: {i_iter}, step: {n_step}, episode Reward: {ep_reward}")
                 break
