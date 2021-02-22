@@ -7,7 +7,7 @@ import numpy as np
 import torch
 
 from Utils.env_util import get_env_info
-
+from Utils.file_util import check_path
 
 @click.command()
 @click.option("--env_id", type=str, default="Swimmer-v3", help="Environment Id")
@@ -22,6 +22,9 @@ def main(env_id, n_trajs, model_path, data_path, render, seed, obs_type):
     """
     Collect trajectories from pre-trained models by PPO
     """
+    if data_path is not None:
+        check_path(data_path)
+
     env, _, num_states, num_actions = get_env_info(env_id)
 
     # seed
@@ -29,16 +32,17 @@ def main(env_id, n_trajs, model_path, data_path, render, seed, obs_type):
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    states, actions, rewards, dones, next_states, ep_rewards = [], [], [], [], [], []
-
     model = pickle.load(open(model_path, 'rb'))
     model.running_state.fix = True
+    states, actions, rewards, dones, next_states = [], [], [], [], []
+
     for i_iter in range(1, n_trajs + 1):
 
         state = env.reset()
         ep_reward = 0
         n_step = 0
 
+        ep_states, ep_actions, ep_rewards, ep_dones, ep_next_states = [], [], [], [], []
         while True:
             if render:
                 env.render()
@@ -50,15 +54,21 @@ def main(env_id, n_trajs, model_path, data_path, render, seed, obs_type):
             ep_reward += reward
             n_step += 1
 
-            states.append(state if obs_type == 0 else normalized_state)
-            actions.append(action)
-            rewards.append(reward)
-            dones.append(done)
-            next_states.append(next_state if obs_type == 0 else normalized_next_state)
+            ep_states.append(state if obs_type == 0 else normalized_state)
+            ep_actions.append(action)
+            ep_rewards.append(reward)
+            ep_dones.append(done)
+            ep_next_states.append(next_state if obs_type ==
+                                  0 else normalized_next_state)
 
             if done:
-                ep_rewards.append(ep_reward)
-                print(f"Iter: {i_iter}, step: {n_step}, episode Reward: {ep_reward}")
+                states.extend(ep_states)
+                actions.extend(ep_actions)
+                rewards.extend(ep_rewards)
+                dones.extend(ep_dones)
+                next_states.extend(ep_next_states)
+                print(
+                    f"Iter: {i_iter}, step: {n_step}, episode Reward: {ep_reward}")
                 break
             state = next_state
 
@@ -66,22 +76,20 @@ def main(env_id, n_trajs, model_path, data_path, render, seed, obs_type):
 
     states = np.r_[states].reshape((-1, num_states))
     next_states = np.r_[next_states].reshape((-1, num_states))
-    actions = np.r_[actions].reshape((-1, num_actions))
+    actions = np.r_[actions].reshape((-1, 1))
     rewards = np.r_[rewards].reshape((-1, 1))
     dones = np.r_[dones].reshape((-1, 1))
-    ep_rewards = np.r_[ep_rewards].reshape((n_trajs, -1))
 
     numpy_dict = {
         'obs': states,
         'action': actions,
         'reward': rewards,
         'done': dones,
-        'next_obs': next_states,
-        'ep_reward': ep_rewards,
+        'next_obs': next_states
     }  # type: Dict[str, np.ndarray]
 
-    if data_path is not None:
-        np.savez(f"{data_path}/{env_id}.npz", **numpy_dict)
+    save_path = f"{data_path}/{env_id}" if data_path is not None else env_id
+    np.savez(f"{save_path}.npz", **numpy_dict)
 
 
 if __name__ == '__main__':

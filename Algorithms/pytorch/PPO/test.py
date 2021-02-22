@@ -39,74 +39,8 @@ def main(env_id, render, num_process, lr_p, lr_v, gamma, tau, epsilon, batch_siz
               seed=seed,
               model_path=model_path)
 
-    # for i_iter in range(1, test_epochs):
-    #     ppo.eval(i_iter)
-
-    # temp code
-    import numpy as np
-    from Utils.env_util import get_env_info
-
-    n_trajs = 50
-    obs_type = 0
-    env, _, num_states, num_actions = get_env_info(env_id)
-
-    states, actions, rewards, dones, next_states = [], [], [], [], []
-
-    for i_iter in range(1, n_trajs + 1):
-
-        state = env.reset()
-        ep_reward = 0
-        n_step = 0
-
-        ep_states, ep_actions, ep_rewards, ep_dones, ep_next_states = [], [], [], [], []
-        while True:
-            if render:
-                env.render()
-            normalized_state = ppo.running_state(state)
-            action = ppo.choose_action(normalized_state)
-            next_state, reward, done, _ = env.step(action)
-            normalized_next_state = ppo.running_state(next_state)
-
-            ep_reward += reward
-            n_step += 1
-
-            ep_states.append(state if obs_type == 0 else normalized_state)
-            ep_actions.append(action)
-            ep_rewards.append(reward)
-            ep_dones.append(done)
-            ep_next_states.append(next_state if obs_type ==
-                                  0 else normalized_next_state)
-
-            if done:
-                if ep_reward > -200:
-                    states.extend(ep_states)
-                    actions.extend(ep_actions)
-                    rewards.extend(ep_rewards)
-                    dones.extend(ep_dones)
-                    next_states.extend(ep_next_states)
-                    print('Add success trajs !!!')
-                print(
-                    f"Iter: {i_iter}, step: {n_step}, episode Reward: {ep_reward}")
-                break
-            state = next_state
-
-    env.close()
-
-    states = np.r_[states].reshape((-1, num_states))
-    next_states = np.r_[next_states].reshape((-1, num_states))
-    actions = np.r_[actions].reshape((-1, 1))
-    rewards = np.r_[rewards].reshape((-1, 1))
-    dones = np.r_[dones].reshape((-1, 1))
-
-    numpy_dict = {
-        'obs': states,
-        'action': actions,
-        'reward': rewards,
-        'done': dones,
-        'next_obs': next_states
-    }  # type: Dict[str, np.ndarray]
-
-    np.savez(f"{env_id}.npz", **numpy_dict)
+    for i_iter in range(1, test_epochs):
+        ppo.eval(i_iter)
 
 
 if __name__ == '__main__':
