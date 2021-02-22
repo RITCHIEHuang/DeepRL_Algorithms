@@ -10,14 +10,21 @@ from Utils.env_util import get_env_info
 
 
 @click.command()
-@click.option("--env_id", type=str, default="Swimmer-v3", help="Environment Id")
-@click.option("--n_trajs", type=int, default=1000, help="Number of trajectories to sample")
-@click.option("--model_path", type=str, default="../PPO/trained_models/Swimmer-v3_ppo.p",
+@click.option("--env_id", type=str, default="MountainCarContinuous-v0", help="Environment Id")
+@click.option("--n_trajs", type=int, default=100,
+              help="Number of trajectories to sample")
+@click.option("--model_path", type=str,
+              default="../PPO/trained_models/MountainCarContinuous-v0_ppo.p",
               help="Directory to load pre-trained model")
-@click.option("--data_path", type=str, default="./data", help="Directory to store expert trajectories")
-@click.option("--render", type=bool, default=False, help="Render environment flag")
-@click.option("--seed", type=int, default=2020, help="Random seed for reproducing")
-def main(env_id, n_trajs, model_path, data_path, render, seed):
+@click.option("--data_path", type=str, default="./data",
+              help="Directory to store expert trajectories")
+@click.option("--render", type=bool, default=True,
+              help="Render environment flag")
+@click.option("--seed", type=int, default=2020,
+              help="Random seed for reproducing")
+@click.option("--obs_type", type=int, default=0,
+              help="Observation type (0 -> raw, 1 -> normalized)")
+def main(env_id, n_trajs, model_path, data_path, render, seed, obs_type):
     """
     Collect trajectories from pre-trained models by PPO
     """
@@ -28,52 +35,64 @@ def main(env_id, n_trajs, model_path, data_path, render, seed):
     torch.manual_seed(seed)
     np.random.seed(seed)
 
-    states, actions, rewards, ep_rewards = [], [], [], []
-
     model = pickle.load(open(model_path, 'rb'))
     model.running_state.fix = True
-    for i_iter in range(1, n_trajs + 1):
+    states, actions, rewards, dones, next_states = [], [], [], [], []
 
+    for i_iter in range(1, n_trajs + 1):
         state = env.reset()
         ep_reward = 0
         n_step = 0
 
+        ep_states, ep_actions, ep_rewards, ep_dones, ep_next_states = [], [], [], [], []
         while True:
             if render:
                 env.render()
-            state = model.running_state(state)
-            action, _ = model.choose_action(state)
-            action = action.cpu().numpy()[0]
-            state, reward, done, _ = env.step(action)
+            normalized_state = model.running_state(state)
+            action = model.choose_action(normalized_state)
+            next_state, reward, done, _ = env.step(action)
+            normalized_next_state = model.running_state(next_state)
 
             ep_reward += reward
             n_step += 1
 
-            states.append(state)
-            actions.append(action)
-            rewards.append(reward)
+            ep_states.append(state if obs_type == 0 else normalized_state)
+            ep_actions.append(action)
+            ep_rewards.append(reward)
+            ep_dones.append(done)
+            ep_next_states.append(next_state if obs_type ==
+                                                0 else normalized_next_state)
 
             if done:
-                ep_rewards.append(ep_reward)
-                print(f"Iter: {i_iter}, step: {n_step}, episode Reward: {ep_reward}")
+                states.extend(ep_states)
+                actions.extend(ep_actions)
+                rewards.extend(ep_rewards)
+                dones.extend(ep_dones)
+                next_states.extend(ep_next_states)
+                print('Add success trajs !!!')
+                print(
+                    f"Iter: {i_iter}, step: {n_step}, episode Reward: {ep_reward}")
                 break
+            state = next_state
 
     env.close()
 
     states = np.r_[states].reshape((-1, num_states))
-    actions = np.r_[actions].reshape((-1, num_actions))
+    next_states = np.r_[next_states].reshape((-1, num_states))
+    actions = np.r_[actions].reshape((-1, 1))
     rewards = np.r_[rewards].reshape((-1, 1))
-    ep_rewards = np.r_[ep_rewards].reshape((n_trajs, -1))
+    dones = np.r_[dones].reshape((-1, 1))
 
     numpy_dict = {
-        'state': states,
+        'obs': states,
         'action': actions,
         'reward': rewards,
-        'ep_reward': ep_rewards,
+        'done': dones,
+        'next_obs': next_states
     }  # type: Dict[str, np.ndarray]
 
-    if data_path is not None:
-        np.savez(f"{data_path}/{env_id}.npz", **numpy_dict)
+    save_path = f"{data_path}/{env_id}" if data_path is not None else env_id
+    np.savez(f"{save_path}.npz", **numpy_dict)
 
 
 if __name__ == '__main__':
