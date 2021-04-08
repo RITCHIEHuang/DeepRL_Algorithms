@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from Algorithms.pytorch.GAIL.dataset.expert_dataset import ExpertDataset
+from Algorithms.pytorch.GAIL.dataset.expert_dataset import ExpertDataset      
 from Algorithms.pytorch.Models.ConfigPolicy import Policy
 from Algorithms.pytorch.Models.Discriminator import Discriminator
 from Algorithms.pytorch.Models.Value import Value
