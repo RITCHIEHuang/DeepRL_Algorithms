@@ -15,8 +15,9 @@ def init_weight(m):
 
 
 class DiscretePolicy(BasePolicy):
-
-    def __init__(self, dim_state, dim_action, dim_hidden=128, activation=nn.LeakyReLU):
+    def __init__(
+        self, dim_state, dim_action, dim_hidden=128, activation=nn.LeakyReLU
+    ):
         super(DiscretePolicy, self).__init__(dim_state, dim_action, dim_hidden)
 
         self.policy = nn.Sequential(
@@ -25,7 +26,7 @@ class DiscretePolicy(BasePolicy):
             nn.Linear(self.dim_hidden, self.dim_hidden),
             activation(),
             nn.Linear(self.dim_hidden, self.dim_action),
-            nn.Softmax(dim=-1)
+            nn.Softmax(dim=-1),
         )
         self.apply(init_weight)
 
@@ -52,5 +53,7 @@ class DiscretePolicy(BasePolicy):
     def get_kl(self, x):
         action_probs = self.policy(x)
         action_probs_old = action_probs.detach()
-        kl = action_probs_old * (torch.log(action_probs_old) - torch.log(action_probs))
+        kl = action_probs_old * (
+            torch.log(action_probs_old) - torch.log(action_probs)
+        )
         return kl.sum(dim=1, keepdim=True)

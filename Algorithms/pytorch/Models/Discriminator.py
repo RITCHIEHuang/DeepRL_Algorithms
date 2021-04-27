@@ -12,7 +12,9 @@ def init_weight(m):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, dim_state, dim_action, dim_hidden=128, activation=nn.LeakyReLU):
+    def __init__(
+        self, dim_state, dim_action, dim_hidden=128, activation=nn.LeakyReLU
+    ):
         super(Discriminator, self).__init__()
 
         self.dim_state = dim_state
@@ -24,7 +26,7 @@ class Discriminator(nn.Module):
             activation(),
             nn.Linear(self.dim_hidden, self.dim_hidden),
             activation(),
-            nn.Linear(self.dim_hidden, 1)
+            nn.Linear(self.dim_hidden, 1),
         )
 
         self.model.apply(init_weight)

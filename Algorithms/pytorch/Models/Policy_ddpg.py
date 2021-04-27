@@ -12,16 +12,24 @@ def init_weight(m):
 
 
 class Policy(BasePolicy):
-    def __init__(self, dim_state, dim_action, max_action=None, dim_hidden=128, activation=nn.LeakyReLU):
+    def __init__(
+        self,
+        dim_state,
+        dim_action,
+        max_action=None,
+        dim_hidden=128,
+        activation=nn.LeakyReLU,
+    ):
         super(Policy, self).__init__(dim_state, dim_action, dim_hidden)
         self.max_action = max_action
-        self.action = nn.Sequential(nn.Linear(self.dim_state, self.dim_hidden),
-                                    activation(),
-                                    nn.Linear(self.dim_hidden, self.dim_hidden),
-                                    activation(),
-                                    nn.Linear(self.dim_hidden, self.dim_action),
-                                    nn.Tanh()
-                                    )
+        self.action = nn.Sequential(
+            nn.Linear(self.dim_state, self.dim_hidden),
+            activation(),
+            nn.Linear(self.dim_hidden, self.dim_hidden),
+            activation(),
+            nn.Linear(self.dim_hidden, self.dim_action),
+            nn.Tanh(),
+        )
         self.apply(init_weight)
 
     def forward(self, x):

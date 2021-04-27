@@ -12,3 +12,48 @@ TDOUBLE = tf.float64
 NLONG = np.int64
 NFLOAT = np.float64
 NDOUBLE = np.float64
+
+
+@tf.function
+def get_flat(nested_tensor):
+    """get flattened tensor"""
+    flattened = tf.concat(
+        [tf.reshape(t, [-1]) for t in nested_tensor],
+        axis=0,
+    )
+    return flattened
+
+
+@tf.function
+def set_from_flat(model, flat_weights):
+    """set model weights from flattened grads"""
+    weights = []
+    idx = 0
+    for var in model.trainable_variables:
+        n_vars = np.prod(var.shape)
+        weights.append(tf.reshape(flat_weights[idx : idx + n_vars], var.shape))
+        idx += n_vars
+    model.set_weights(weights)
+
+
+@tf.function
+def flatgrad(loss, var_list, clip_norm=None):
+    """
+    calculates the gradient and flattens it
+    :param loss: (float) the loss value
+    :param var_list: ([TensorFlow Tensor]) the variables
+    :param clip_norm: (float) clip the gradients (disabled if None)
+    :return: ([TensorFlow Tensor]) flattened gradient
+    """
+    grads = tf.gradients(loss, var_list)
+    if clip_norm is not None:
+        grads = [tf.clip_by_norm(grad, clip_norm=clip_norm) for grad in grads]
+    return tf.concat(
+        [
+            tf.reshape(
+                grad if grad is not None else tf.zeros_like(v), [np.prod(v)]
+            )
+            for (v, grad) in zip(var_list, grads)
+        ],
+        axis=0,
+    )

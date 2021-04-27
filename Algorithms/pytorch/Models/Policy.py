@@ -15,9 +15,18 @@ def init_weight(m):
 
 
 class Policy(BasePolicy):
-
-    def __init__(self, dim_state, dim_action, max_action=None, dim_hidden=128, activation=nn.LeakyReLU,
-                 log_std_min=-20, log_std_max=2, log_std=0, use_sac=False):
+    def __init__(
+        self,
+        dim_state,
+        dim_action,
+        max_action=None,
+        dim_hidden=128,
+        activation=nn.LeakyReLU,
+        log_std_min=-20,
+        log_std_max=2,
+        log_std=0,
+        use_sac=False,
+    ):
         super(Policy, self).__init__(dim_state, dim_action, dim_hidden)
         self.max_action = max_action
         self.log_std_min = log_std_min
@@ -27,15 +36,16 @@ class Policy(BasePolicy):
             nn.Linear(self.dim_state, self.dim_hidden),
             activation(),
             nn.Linear(self.dim_hidden, self.dim_hidden),
-            activation()
+            activation(),
         )
         self.policy = nn.Linear(self.dim_hidden, self.dim_action)
 
         if self.use_sac:
             self.log_std = nn.Linear(self.dim_hidden, self.dim_action)
         else:
-            self.log_std = nn.Parameter(torch.ones(
-                1, self.dim_action) * log_std, requires_grad=True)
+            self.log_std = nn.Parameter(
+                torch.ones(1, self.dim_action) * log_std, requires_grad=True
+            )
 
         self.apply(init_weight)
 
@@ -67,7 +77,7 @@ class Policy(BasePolicy):
         u = dist.rsample()
         log_prob = dist.log_prob(u)
         action = torch.tanh(u)
-        log_prob -= (torch.log(1. - action.pow(2) + eps))
+        log_prob -= torch.log(1.0 - action.pow(2) + eps)
         # log_prob = dist.log_prob(u).sum(dim=-1) - (2*(np.log(2) - u - F.softplus(-2*u))).sum(dim=-1)
         return action * self.max_action, log_prob
 
@@ -84,6 +94,10 @@ class Policy(BasePolicy):
         log_std_old = log_std.detach()
         std = torch.exp(log_std)
         std_old = std.detach()
-        kl = -1 / 2 + log_std - log_std_old + \
-            (std_old.pow(2) + (mean_old - mean).pow(2)) / (2 * std.pow(2))
+        kl = (
+            -1 / 2
+            + log_std
+            - log_std_old
+            + (std_old.pow(2) + (mean_old - mean).pow(2)) / (2 * std.pow(2))
+        )
         return kl.sum(dim=1, keepdim=True)
