@@ -11,14 +11,16 @@ from Common.replay_memory import Memory
 from Utils.tf2_util import NDOUBLE, TDOUBLE
 
 
-def collect_samples(pid, queue, env, policy, render, running_state, min_batch_size):
+def collect_samples(
+    pid, queue, env, policy, render, running_state, min_batch_size
+):
     log = dict()
     memory = Memory()
     num_steps = 0
     num_episodes = 0
 
-    min_episode_reward = float('inf')
-    max_episode_reward = float('-inf')
+    min_episode_reward = float("inf")
+    max_episode_reward = float("-inf")
     total_reward = 0
 
     while num_steps < min_batch_size:
@@ -32,7 +34,8 @@ def collect_samples(pid, queue, env, policy, render, running_state, min_batch_si
                 env.render()
 
             state_tensor = tf.expand_dims(
-                tf.convert_to_tensor(state, dtype=TDOUBLE), axis=0)
+                tf.convert_to_tensor(state, dtype=TDOUBLE), axis=0
+            )
             action, log_prob = policy.get_action_log_prob(state_tensor)
             action = action.numpy()[0]
             log_prob = log_prob.numpy()[0]
@@ -58,12 +61,12 @@ def collect_samples(pid, queue, env, policy, render, running_state, min_batch_si
         min_episode_reward = min(episode_reward, min_episode_reward)
         max_episode_reward = max(episode_reward, max_episode_reward)
 
-    log['num_steps'] = num_steps
-    log['num_episodes'] = num_episodes
-    log['total_reward'] = total_reward
-    log['avg_reward'] = total_reward / num_episodes
-    log['max_episode_reward'] = max_episode_reward
-    log['min_episode_reward'] = min_episode_reward
+    log["num_steps"] = num_steps
+    log["num_episodes"] = num_episodes
+    log["total_reward"] = total_reward
+    log["avg_reward"] = total_reward / num_episodes
+    log["max_episode_reward"] = max_episode_reward
+    log["min_episode_reward"] = min_episode_reward
 
     if queue is not None:
         queue.put([pid, memory, log])
@@ -73,20 +76,24 @@ def collect_samples(pid, queue, env, policy, render, running_state, min_batch_si
 
 def merge_log(log_list):
     log = dict()
-    log['total_reward'] = sum([x['total_reward'] for x in log_list])
-    log['num_episodes'] = sum([x['num_episodes'] for x in log_list])
-    log['num_steps'] = sum([x['num_steps'] for x in log_list])
-    log['avg_reward'] = log['total_reward'] / log['num_episodes']
-    log['max_episode_reward'] = max(
-        [x['max_episode_reward'] for x in log_list])
-    log['min_episode_reward'] = min(
-        [x['min_episode_reward'] for x in log_list])
+    log["total_reward"] = sum([x["total_reward"] for x in log_list])
+    log["num_episodes"] = sum([x["num_episodes"] for x in log_list])
+    log["num_steps"] = sum([x["num_steps"] for x in log_list])
+    log["avg_reward"] = log["total_reward"] / log["num_episodes"]
+    log["max_episode_reward"] = max(
+        [x["max_episode_reward"] for x in log_list]
+    )
+    log["min_episode_reward"] = min(
+        [x["min_episode_reward"] for x in log_list]
+    )
 
     return log
 
 
 class MemoryCollector:
-    def __init__(self, env, policy, render=False, running_state=None, num_process=1):
+    def __init__(
+        self, env, policy, render=False, running_state=None, num_process=1
+    ):
         self.env = env
         self.policy = policy
         self.running_state = running_state
@@ -101,16 +108,33 @@ class MemoryCollector:
 
         # don't render other parallel processes
         for i in range(self.num_process - 1):
-            worker_args = (i + 1, queue, self.env, self.policy,
-                           False, self.running_state, process_batch_size)
-            workers.append(multiprocessing.Process(
-                target=collect_samples, args=worker_args))
+            worker_args = (
+                i + 1,
+                queue,
+                self.env,
+                self.policy,
+                False,
+                self.running_state,
+                process_batch_size,
+            )
+            workers.append(
+                multiprocessing.Process(
+                    target=collect_samples, args=worker_args
+                )
+            )
 
         for worker in workers:
             worker.start()
 
-        memory, log = collect_samples(0, None, self.env, self.policy,
-                                      self.render, self.running_state, process_batch_size)
+        memory, log = collect_samples(
+            0,
+            None,
+            self.env,
+            self.policy,
+            self.render,
+            self.running_state,
+            process_batch_size,
+        )
 
         worker_logs = [None] * len(workers)
         worker_memories = [None] * len(workers)
@@ -129,6 +153,6 @@ class MemoryCollector:
             log = merge_log(log_list)
 
         t_end = time.time()
-        log['sample_time'] = t_end - t_start
+        log["sample_time"] = t_end - t_start
 
         return memory, log

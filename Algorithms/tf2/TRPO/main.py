@@ -9,7 +9,7 @@ from Algorithms.tf2.TRPO.trpo import TRPO
     "--env_id", type=str, default="MountainCar-v0", help="Environment Id"
 )
 @click.option(
-    "--render", type=bool, default=True, help="Render environment or not"
+    "--render", type=bool, default=False, help="Render environment or not"
 )
 @click.option(
     "--num_process",

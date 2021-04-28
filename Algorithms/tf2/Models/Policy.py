@@ -11,21 +11,30 @@ from tensorflow_probability.python.distributions import Normal
 
 
 class Policy(BasePolicy):
-
-    def __init__(self, dim_state, dim_action, dim_hidden=128, activation=tf.nn.leaky_relu, log_std=0):
+    def __init__(
+        self,
+        dim_state,
+        dim_action,
+        dim_hidden=128,
+        activation=tf.nn.leaky_relu,
+        log_std=0,
+    ):
         super(Policy, self).__init__(dim_state, dim_action, dim_hidden)
 
-        self.policy = tf.keras.models.Sequential([
-            layers.Dense(self.dim_hidden, activation=activation),
-            layers.Dense(self.dim_hidden, activation=activation),
-            layers.Dense(self.dim_action)
-        ])
+        self.policy = tf.keras.models.Sequential(
+            [
+                layers.Dense(self.dim_hidden, activation=activation),
+                layers.Dense(self.dim_hidden, activation=activation),
+                layers.Dense(self.dim_action),
+            ]
+        )
         self.policy.build(input_shape=(None, self.dim_state))
 
-        self.log_std = tf.Variable(name="action_log_std",
-                                   initial_value=tf.zeros(
-                                       (1, dim_action), dtype=TDOUBLE) * log_std,
-                                   trainable=True)
+        self.log_std = tf.Variable(
+            name="action_log_std",
+            initial_value=tf.zeros((1, dim_action), dtype=TDOUBLE) * log_std,
+            trainable=True,
+        )
 
     @tf.function
     def _get_dist(self, states):
@@ -60,7 +69,21 @@ class Policy(BasePolicy):
         return tf.reduce_sum(dist.entropy(), -1)
 
     def get_kl(self, states):
-        pass
+        mean = self.policy(states)
+        log_std = tf.ones_like(mean) * self.log_std
+        std = tf.exp(log_std)
+        mean_old = tf.stop_gradient(mean)
+        log_std_old = tf.stop_gradient(log_std)
+        std_old = tf.stop_gradient(std)
+        kl = (
+            -1 / 2
+            + log_std
+            - log_std_old
+            + (tf.square(std_old) + tf.square(mean_old - mean))
+            / (2 * tf.square(std))
+        )
+        return tf.reduce_sum(kl, axis=-1, keepdims=True)
+
 
 # if __name__ == '__main__':
 #     tf.keras.backend.set_floatx('float64')
