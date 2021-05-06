@@ -109,6 +109,6 @@ All the plots in this project are drawn by this plot util.
 
 #### **Tensorflow2 Version**
 
-Currently only `VPG` and `PPO` Available:
+Currently only `VPG`, `PPO` and `TRPO` Available:
 
 ![bench_pg_tf2](Algorithms/images/bench_pg_tf2.png)
