@@ -10,7 +10,7 @@ import torch.optim as optim
 from Algorithms.pytorch.DDPG.ddpg_step import ddpg_step
 from Algorithms.pytorch.Models.Policy_ddpg import Policy
 from Algorithms.pytorch.Models.Value_ddpg import Value
-from Common.fixed_size_replay_memory import FixedMemory
+from Common.replay_memory import Memory
 from Utils.env_util import get_env_info
 from Utils.file_util import check_path
 from Utils.torch_util import device, FLOAT
@@ -39,7 +39,7 @@ class DDPG:
         self.env_id = env_id
         self.gamma = gamma
         self.polyak = polyak
-        self.memory = FixedMemory(memory_size)
+        self.memory = Memory(memory_size)
         self.explore_size = explore_size
         self.step_per_iter = step_per_iter
         self.render = render
